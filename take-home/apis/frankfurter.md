@@ -1,55 +1,34 @@
-# Frankfurter: Currency Exchange Rates
+# Frankfurter
 
-Open-source exchange-rate API based on reference rates from the European Central Bank
-and other central banks.
+Daily exchange rates from the European Central Bank, back to 1999.
 
-- **Official docs:** https://frankfurter.dev/
-- **Source code:** https://github.com/lineofflight/frankfurter
-- **Auth:** none
-- **Rate limits:** no hard limit for reasonable use. Rates change once per business day, so cache for hours.
-- **Format:** JSON
+| | |
+|---|---|
+| Docs | [frankfurter.dev](https://frankfurter.dev/) |
+| Auth | None |
+| Rate limit | None published. Rates update once per business day, so cache for hours. |
+| Format | JSON |
+| Version | Use **v1**: simple, 30 currencies, still updated daily |
 
-## Sample data
+## Endpoints
 
-Real data from this API:
+Base URL: `https://api.frankfurter.dev/v1`
 
-| Currency | 1 USD on 2024-12-31 | 1 USD on 2025-12-31 | Index at year end | Year low | Year high |
-|---|---:|---:|---:|---:|---:|
-| EUR | 0.96256 | 0.85106 | 88.4 | 0.84481 | 0.98058 |
-| GBP | 0.79813 | 0.74264 | 93.0 | 0.72718 | 0.82526 |
-| JPY | 156.95 | 156.67 | 99.8 | 140.34 | 158.41 |
-
-*One `/v1/2025-01-01..2025-12-31?base=USD&symbols=EUR,GBP,JPY` call (256 business days), each series divided by its first value and multiplied by 100 so they're comparable. This is the kind of data idea 1 (Currency performance leaderboard) is built on.*
-
-## Versions
-
-There are two versions on the same host:
-
-- **v1** (`https://api.frankfurter.dev/v1`): the API shape is frozen, but its data still updates every business day. It's simple and has 30 major currencies from the ECB. **We recommend v1 for this exercise.**
-- **v2** (`https://api.frankfurter.dev/v2`) blends many central-bank providers and covers more currencies. See the official docs if you want to use it.
-
-> The older host `api.frankfurter.app` returns a 301 redirect to `api.frankfurter.dev/v1`. Use the new host
-> directly, because some HTTP clients don't follow redirects by default.
-
-## v1 endpoints
-
-| Route | Purpose |
-|-------|---------|
-| `GET /v1/latest` | Most recent rates |
-| `GET /v1/{YYYY-MM-DD}` | Rates on a given date (weekend or holiday → previous business day) |
-| `GET /v1/{start}..{end}` | Time series between two dates, e.g. `2024-01-01..2024-06-30` |
-| `GET /v1/{start}..` | Time series from a date until today |
-| `GET /v1/currencies` | Map of currency code → name |
-
-Query parameters (all optional):
+| Route | Returns |
+|---|---|
+| `GET /latest` | Latest rates |
+| `GET /{YYYY-MM-DD}` | Rates on a date |
+| `GET /{start}..{end}` | Daily series between two dates |
+| `GET /{start}..` | Daily series up to today |
+| `GET /currencies` | Code → name map |
 
 | Param | Example | Notes |
-|-------|---------|-------|
-| `base` | `USD` | Default `EUR`. `from` is an accepted alias. |
-| `symbols` | `EUR,GBP,JPY` | Limit the target currencies. `to` is an accepted alias. |
-| `amount` | `250` | Converts this amount instead of 1 |
+|---|---|---|
+| `base` | `USD` | Default `EUR` |
+| `symbols` | `EUR,GBP,JPY` | Default: all |
+| `amount` | `250` | Default `1` |
 
-## Example requests
+## Examples
 
 ```bash
 curl "https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR,GBP,JPY"
@@ -59,17 +38,16 @@ curl "https://api.frankfurter.dev/v1/latest?amount=100&base=USD&symbols=EUR"
 curl "https://api.frankfurter.dev/v1/currencies"
 ```
 
-## Response shapes
+## Response
 
-Latest or single date:
+Single date:
 
 ```json
 { "amount": 1.0, "base": "USD", "date": "2026-09-29",
   "rates": { "EUR": 0.88067, "GBP": 0.75489, "JPY": 157.12 } }
 ```
 
-Time series (keyed by date). This is the real response for `2024-01-01..2024-06-30`. Notice that it
-starts on **2023-12-29**, the last business day before the requested start:
+Series, keyed by date. This request asked for `2024-01-01..` but starts on `2023-12-29`:
 
 ```json
 {
@@ -82,88 +60,46 @@ starts on **2023-12-29**, the last business day before the requested start:
 }
 ```
 
-Currencies:
+## Sample data
 
-```json
-{ "AUD": "Australian Dollar", "BRL": "Brazilian Real", "EUR": "Euro", "USD": "United States Dollar" }
-```
+What 1 USD bought in 2025:
 
-## v2 at a glance (optional)
-
-Endpoints that appear in the v2 docs include `GET /v2/rates?base=USD&quotes=EUR,GBP`,
-`GET /v2/rate/{base}/{quote}`, `GET /v2/providers/ecb/rates?date=YYYY-MM-DD`,
-and `GET /v2/coverage`. v2 returns flat rows instead of v1's nested objects, e.g.
-`/v2/rates?base=USD&quotes=EUR,GBP` →
-`[{"date":"2026-09-29","base":"USD","quote":"EUR","rate":0.87945}, ...]`.
-v2 values can differ slightly from v1 because they blend several providers. Pick one version and stick with it.
+| Currency | Start | End | Change | Low | High |
+|---|---:|---:|---:|---:|---:|
+| EUR | 0.96256 | 0.85106 | −11.6% | 0.84481 | 0.98058 |
+| GBP | 0.79813 | 0.74264 | −7.0% | 0.72718 | 0.82526 |
+| JPY | 156.95 | 156.67 | −0.2% | 140.34 | 158.41 |
 
 ## Gotchas
 
-- Rates are published **once per business day** (around 16:00 CET). There's no data for weekends
-  or holidays, so a time series skips those dates. Account for gaps when computing
-  "daily" returns or charting.
-- A range's `start_date` snaps **back** to the last business day on or before the date you asked for
-  (asking for `2024-01-01..` returns data from `2023-12-29`). A single-date request on a weekend returns
-  the previous business day's rates, with that earlier `date` in the response.
-- Long ranges stay daily and aren't downsampled (10 years ≈ 2,500 dates in one response).
-- The time-series `rates` object is keyed by date string. Sort the keys before charting.
-  Don't rely on object key order.
-- Rates are *reference* rates, not live trading prices.
-- An unknown currency code (in `base` or `symbols`) returns HTTP 404 with `{ "message": "not found" }`.
-  So does asking for the base currency as a symbol (`?symbols=EUR` with the default `EUR` base).
-- **Python's built-in `urllib` is blocked** (HTTP 403 for its default `Python-urllib` User-Agent). Use
-  `httpx` or `requests`, which work fine, or set your own `User-Agent` header.
-- v1 has exactly 30 currencies (ECB list). Check `/v1/currencies` rather than hard-coding them.
+- No data on weekends or holidays. Series have gaps.
+- Ranges start on the last business day **on or before** your start date.
+- Weekend dates return the previous business day's rates.
+- `rates` is keyed by date string. Sort the keys yourself.
+- Unknown currency: HTTP 404 `{"message": "not found"}`. Same if `symbols` includes the base.
+- **Python's `urllib` gets HTTP 403.** Use `httpx` or `requests`.
+- `api.frankfurter.app` redirects here. Use `api.frankfurter.dev` directly.
+- Long ranges aren't downsampled. 10 years ≈ 2,500 dates.
+- A v2 API exists with more currencies and a different shape. Don't mix versions; values differ slightly.
 
 ## Dashboard ideas
 
-Pick one of these, or combine parts of them. In each idea, the backend does real work:
-it reshapes the date-keyed time series and computes financial statistics. Just returning
-the raw rates doesn't count.
+### 1. Currency leaderboard
+- **Shows:** several currencies on one chart (indexed to 100), ranked by change, volatility, and max drop.
+- **Endpoint:** `GET /api/fx/performance?base=USD&symbols=EUR,GBP,JPY&from=2025-01-01&to=2025-12-31`
+- **Backend:** pivot to one series per currency, index to 100, compute daily returns, volatility, drawdown.
 
-### 1. Currency performance leaderboard
-**Dashboard shows:** A date-range picker, a line chart of several currencies **rebased to 100** at the
-start date (so they're comparable), and a ranked table of % change, volatility, and max drawdown.
+### 2. Trip budget
+- **Shows:** what a budget is worth in 2–4 currencies today vs 30, 90, and 365 days ago.
+- **Endpoint:** `GET /api/fx/budget?home=USD&amount=2000&destinations=EUR,JPY,MXN`
+- **Backend:** one year-long series, find the nearest business day for each lookback, compute values and changes.
 
-**Example endpoint:** `GET /api/fx/performance?base=USD&symbols=EUR,GBP,JPY,CAD&from=2025-01-01&to=2025-12-31`
+### 3. Moving averages
+- **Shows:** one pair with 7- and 30-day averages, crossover points, and 52-week high and low.
+- **Endpoint:** `GET /api/fx/trend?base=EUR&quote=USD&days=365`
+- **Backend:** rolling averages over business days, crossover detection, range position.
 
-**Backend work:**
-- Turn the `{date: {cur: rate}}` object into sorted per-currency series.
-- Rebase each series to 100 at the start date.
-- Compute total % change, daily returns, volatility (standard deviation of daily returns), best and
-  worst day, and max drawdown.
-- Handle the weekend and holiday gaps in the series.
-
-### 2. Trip budget tracker
-**Dashboard shows:** The user enters a home currency, an amount, and 2–4 destination currencies. For
-each destination, a card shows what the budget is worth today vs 30, 90, and 365 days ago, with a sparkline.
-
-**Example endpoint:** `GET /api/fx/budget?home=USD&amount=2000&destinations=EUR,JPY,MXN`
-
-**Backend work:**
-- Fetch one time series covering the last year.
-- Pick the nearest available business day for each lookback date, then compute the converted
-  amounts and % differences.
-- Find the best and worst day in the period to have exchanged the money.
-
-### 3. Trend & moving averages
-**Dashboard shows:** One currency pair with 7-day and 30-day moving averages, markers where the
-averages cross, and the 52-week high and low, plus where today sits in that range.
-
-**Example endpoint:** `GET /api/fx/trend?base=EUR&quote=USD&days=365`
-
-**Backend work:**
-- Compute the rolling averages with correct windows over business days.
-- Detect crossovers, compute the 52-week high and low, and express the current rate's position in
-  that range as a percentage.
-
-### 4. Cross-rate heatmap
-**Dashboard shows:** A matrix of currencies × currencies colored by the % change of each pair over the
-chosen period (e.g. how EUR/JPY moved).
-
-**Example endpoint:** `GET /api/fx/matrix?symbols=USD,EUR,GBP,JPY,CHF&from=..&to=..`
-
-**Backend work:**
-- Use a **single-base** time series and derive every cross rate yourself
-  (rate A→B = rate_B / rate_A), instead of making N² upstream calls.
-- Compute the start-to-end % change for every pair.
+### 4. Cross-rate grid
+- **Shows:** a currency × currency grid of % changes over a period.
+- **Endpoint:** `GET /api/fx/matrix?symbols=USD,EUR,GBP,JPY,CHF&from=..&to=..`
+- **Backend:** one single-base series, derive each pair as `rate_B / rate_A`, compute changes. No extra calls.
