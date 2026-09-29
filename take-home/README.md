@@ -107,7 +107,7 @@ Good things to put in `docs/`:
 
 | Area | Good looks like |
 | --- | --- |
-| AI use | Clear direction, critical review, honest notes. You can explain every line. |
+| AI use (if applicable) | Responsible use: clear direction, critical review of its output, no secrets or private data shared with it, and honest notes. You can explain every line. |
 | Planning | A plan you followed and updated. |
 | Backend | Clean endpoints, correct math, validation, error handling, caching. |
 | Frontend | Works. Handles loading, empty, and error states. |
