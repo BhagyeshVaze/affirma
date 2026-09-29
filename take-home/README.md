@@ -57,7 +57,7 @@ A database is **not** required. In-memory caching is plenty.
 
 ## Required documentation
 
-These are **required**. Put them in your submission folder (see [Submitting](#submitting)):
+These are **required**. Put them in your `solution/` folder (see [Submitting](#submitting)):
 
 | File | What goes in it |
 | ---- | --------------- |
@@ -93,10 +93,10 @@ Tests are welcome but not required. One or two `pytest` tests on your calculatio
 ## Submitting
 
 1. **Fork** this repository.
-2. Put your project in `take-home/submissions/<your-name>/`, for example:
+2. Add your project to your fork in a `solution/` folder next to this README:
 
    ```
-   take-home/submissions/jane-doe/
+   take-home/solution/
    ├── README.md
    ├── PLAN.md
    ├── AI_LOG.md
@@ -106,7 +106,7 @@ Tests are welcome but not required. One or two `pytest` tests on your calculatio
    ```
 
 3. Commit your work in steps and push to your fork.
-4. Send us the link to your fork (or open a pull request against this repo if we asked you to).
+4. Send us the link to your fork. No pull request is needed.
 
 Don't commit secrets, `node_modules/`, virtual environments, or build output.
 
