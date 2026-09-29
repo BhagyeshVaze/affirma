@@ -33,8 +33,6 @@ that one works before you commit to it.
 | [UK Carbon Intensity](https://carbon-intensity.github.io/api-definitions/) | UK electricity carbon intensity and fuel mix |
 | [Open Food Facts](https://openfoodfacts.github.io/openfoodfacts-server/api/) | Food products and nutrition |
 
-Run [`./check-apis.sh`](./check-apis.sh) to check they're reachable from your network.
-
 ## Using these docs with AI
 
 1. **Plan.** Give your AI `../README.md` and your API's doc. Ask for a plan. Save the plan (and any
