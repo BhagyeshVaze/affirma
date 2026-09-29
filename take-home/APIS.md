@@ -4,25 +4,28 @@ Every API below is **free and needs no API key, token, or sign-up**. You can cal
 them directly with `curl` or `fetch`. Each section has a sample request and one
 or more **example challenges**. Use one as-is or as inspiration for your own.
 
+**Detailed reference docs** (all routes, parameters, response shapes, and gotchas) are in
+[`apis/`](./apis/README.md), one file per API. They're written so you can hand them to your AI assistant while planning.
+
 > Rate limits are approximate and set by the providers, who can change them. Cache
 > upstream responses in your backend. Good citizenship is part of the grade.
 
 ## Quick reference
 
-| # | API | Domain | Rate limit (approx.) | Notes |
-|---|-----|--------|----------------------|-------|
-| 1 | [Open-Meteo](https://open-meteo.com/en/docs) | Weather, climate, air quality | ~10k req/day | Forecast, historical data back to 1940, geocoding |
-| 2 | [USGS Earthquakes](https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php) | Earthquakes | Generous | GeoJSON, near real-time |
-| 3 | [Frankfurter](https://frankfurter.dev/) | Currency exchange rates | No hard limit | Central bank reference rates, history back decades |
-| 4 | [CoinGecko (keyless)](https://docs.coingecko.com/docs/keyless-public-api) | Crypto prices | **Low** (a few req/min) | Cache is essential |
-| 5 | [Jolpica F1](https://github.com/jolpica/jolpica-f1/blob/main/docs/README.md) | Formula 1 results | 200 req/hour | Drop-in Ergast replacement |
-| 6 | [World Bank Indicators](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392) | Economics, population | Generous | Add `format=json` |
-| 7 | [REST Countries](https://restcountries.com/) | Country metadata | Generous | `fields=` is **required** on `/all` |
-| 8 | [CityBikes](https://api.citybik.es/v2/) | Bike-share stations | Generous | 700+ networks worldwide, live |
-| 9 | [Hacker News](https://github.com/HackerNews/API) + [Algolia HN Search](https://hn.algolia.com/api) | Tech news | Generous | Firebase API returns IDs only, so you fetch items one by one |
-| 10 | [PokéAPI](https://pokeapi.co/docs/v2) | Pokémon | Generous (please cache) | Fun, deeply nested data |
-| 11 | [Open Library](https://openlibrary.org/developers/api) | Books | 1 req/s (3 req/s with User-Agent) | Set a descriptive `User-Agent` |
-| 12 | [National Weather Service](https://www.weather.gov/documentation/services-web-api) | US forecasts & alerts | Generous | **`User-Agent` header required**. US only |
+| # | API | Domain | Rate limit (approx.) | Notes | Reference |
+|---|-----|--------|----------------------|-------|-----------|
+| 1 | [Open-Meteo](https://open-meteo.com/en/docs) | Weather, climate, air quality | ~10k req/day | Forecast, historical data back to 1940, geocoding | [open-meteo.md](./apis/open-meteo.md) |
+| 2 | [USGS Earthquakes](https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php) | Earthquakes | Generous | GeoJSON, near real-time | [usgs-earthquakes.md](./apis/usgs-earthquakes.md) |
+| 3 | [Frankfurter](https://frankfurter.dev/) | Currency exchange rates | No hard limit | Central bank reference rates, history back decades | [frankfurter.md](./apis/frankfurter.md) |
+| 4 | [CoinGecko (keyless)](https://docs.coingecko.com/docs/keyless-public-api) | Crypto prices | **Low** (a few req/min) | Cache is essential | [coingecko.md](./apis/coingecko.md) |
+| 5 | [Jolpica F1](https://github.com/jolpica/jolpica-f1/blob/main/docs/README.md) | Formula 1 results | 200 req/hour | Drop-in Ergast replacement | [jolpica-f1.md](./apis/jolpica-f1.md) |
+| 6 | [World Bank Indicators](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392) | Economics, population | Generous | Add `format=json` | [world-bank.md](./apis/world-bank.md) |
+| 7 | [REST Countries](https://restcountries.com/) | Country metadata | Generous | `fields=` is **required** on `/all` | [rest-countries.md](./apis/rest-countries.md) |
+| 8 | [CityBikes](https://api.citybik.es/v2/) | Bike-share stations | Generous | 700+ networks worldwide, live | [citybikes.md](./apis/citybikes.md) |
+| 9 | [Hacker News](https://github.com/HackerNews/API) + [Algolia HN Search](https://hn.algolia.com/api) | Tech news | Generous | Firebase API returns IDs only, so you fetch items one by one | [hacker-news.md](./apis/hacker-news.md) |
+| 10 | [PokéAPI](https://pokeapi.co/docs/v2) | Pokémon | Generous (please cache) | Fun, deeply nested data | [pokeapi.md](./apis/pokeapi.md) |
+| 11 | [Open Library](https://openlibrary.org/developers/api) | Books | 1 req/s (3 req/s with User-Agent) | Set a descriptive `User-Agent` | [open-library.md](./apis/open-library.md) |
+| 12 | [National Weather Service](https://www.weather.gov/documentation/services-web-api) | US forecasts & alerts | Generous | **`User-Agent` header required**. US only | [nws-weather-gov.md](./apis/nws-weather-gov.md) |
 
 ---
 

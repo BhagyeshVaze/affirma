@@ -17,7 +17,8 @@ slice than a large feature list.
 ## The task
 
 1. **Pick a data source.** Choose one or more APIs from [`APIS.md`](./APIS.md). Every
-   API on that list is free and needs **no API key and no sign-up**. You may use another
+   API on that list is free and needs **no API key and no sign-up**. Detailed route
+   references for each API are in [`apis/`](./apis/README.md). Feed them to your AI assistant. You may use another
    keyless public API if you prefer. Tell us why in your plan.
 2. **Pick a challenge.** Use one of the example challenges in `APIS.md` or come up
    with your own. Your challenge should require the backend to **transform, combine,
