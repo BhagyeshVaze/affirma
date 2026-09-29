@@ -96,10 +96,12 @@ Tests are optional. A few `pytest` tests on your calculations help.
 
 **Checklist**
 
-- [ ] Backend and frontend run from your README
-- [ ] 2+ endpoints that compute something
-- [ ] Your plan is the first commit
-- [ ] `docs/` has your plan, decisions, and key AI inputs
+- [ ] Plan or TDD committed before any code
+- [ ] 2+ backend endpoints that transform or compute data
+- [ ] Backend handles timeouts, bad input, and rate limits
+- [ ] Frontend calls only your backend, with at least one chart and one control
+- [ ] README explains how to run it in under 5 minutes
+- [ ] `docs/` has your plan, decisions, and key AI inputs (if you used AI)
 - [ ] No secrets, `node_modules/`, virtualenvs, or build output
 
 Questions? Ask. It's a good sign.
