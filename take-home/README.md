@@ -1,7 +1,7 @@
 # Full-Stack Take-Home: Build a Data Dashboard
 
 Welcome! In this exercise you'll build a small full-stack app: a **backend** that pulls
-data from one or more free public APIs and turns it into something new, plus a
+data from a free public API and turns it into something new, plus a
 **frontend dashboard** that displays the results.
 
 We want to see how you plan, build, and document work **with AI tools**. Using
@@ -16,13 +16,13 @@ slice than a large feature list.
 
 ## The task
 
-1. **Pick a data source.** Choose one or more APIs from [`APIS.md`](./APIS.md). Every
-   API on that list is free and needs **no API key and no sign-up**. Detailed route
-   references for each API are in [`apis/`](./apis/README.md). Feed them to your AI assistant. You may use another
-   keyless public API if you prefer. Tell us why in your plan.
-2. **Pick a challenge.** Use one of the example challenges in `APIS.md` or come up
-   with your own. Your challenge should require the backend to **transform, combine,
-   or compute** something. A pass-through proxy doesn't count.
+1. **Pick an API.** Choose **one** of the four APIs in [`apis/`](./apis/README.md): Open-Meteo
+   (weather), USGS Earthquakes, Frankfurter (exchange rates), or Jolpica F1. All are free
+   and need **no API key and no sign-up**. Each API's file lists its routes, response
+   shapes, and gotchas. It's written so you can hand it straight to your AI assistant.
+2. **Pick a dashboard.** Each API file ends with four **dashboard ideas**. Build one of them,
+   combine ideas, or design your own. Your backend must **transform, combine, or compute**
+   something. A pass-through proxy doesn't count.
 3. **Build the backend.** Expose **at least 2 of your own endpoints** that:
    - call the upstream API(s)
    - reshape the data and/or calculate something (aggregates, rankings, rolling
@@ -57,7 +57,7 @@ Put these files in your submission folder (see [Submitting](#submitting)):
 | File | What goes in it |
 | ---- | --------------- |
 | `README.md` | How to install and run the backend and frontend (ideally one or two commands each), plus a short description of what the dashboard shows. |
-| `PLAN.md` | Your plan **written before you started coding**: the chosen API(s) and challenge, the endpoint designs (routes, params, response shapes), the frontend layout, and the risks or open questions. Update it as you go. We want to see how the plan changed. |
+| `PLAN.md` | Your plan **written before you started coding**: the chosen API and dashboard, the endpoint designs (routes, params, response shapes), the frontend layout, and the risks or open questions. Update it as you go. We want to see how the plan changed. |
 | `AI_LOG.md` | How you used AI: which tools, the important prompts (copied or summarized), what you accepted as-is, what you changed, and **at least one place where the AI was wrong or unhelpful** and how you noticed and fixed it. |
 | `DECISIONS.md` *(optional)* | Trade-offs, things you'd do with more time, known bugs. |
 
@@ -98,7 +98,6 @@ Don't commit secrets, `node_modules/`, virtual environments, or build output.
 
 - Free public APIs have rate limits and sometimes go down. Cache responses and
   show a friendly error when an upstream call fails.
-- Some APIs ask for a descriptive `User-Agent` header (noted in `APIS.md`).
-- Run `./check-apis.sh` to quickly see which APIs are reachable from your network.
+- Run `./check-apis.sh` to quickly see whether the four APIs are reachable from your network.
 
 Questions? Reach out. Asking a clarifying question is a good sign, not a bad one.

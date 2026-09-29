@@ -95,3 +95,56 @@ curl "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson\
 - `properties.type` isn't always `earthquake`. It can also be `quarry blast`, `explosion`, and so on.
 - Queries returning more than 20,000 events fail with HTTP 400. Narrow the range or use `/count` first.
 - Prefer the summary feeds for "recent" dashboards, since they're pre-generated and very fast.
+
+## Dashboard ideas
+
+Pick one of these, or combine parts of them. In each idea, the backend does real work:
+it aggregates, does geo math, and reshapes GeoJSON into what the UI needs. Just
+forwarding the USGS feed doesn't count.
+
+### 1. Global activity overview
+**Dashboard shows:** KPI tiles (total quakes, strongest, average depth, # with tsunami flag), a bar
+chart of quakes per day, a magnitude histogram, and a table of the 10 strongest.
+
+**Example endpoint:** `GET /api/quakes/summary?period=week&min_mag=2.5`
+
+**Backend work:**
+- Pick the right summary feed (or query) for the requested period.
+- Bucket by day (handle the time zone) and by magnitude band (<2, 2–4, 4–6, 6+).
+- Compute the KPIs, sort, and return a compact shape (not raw GeoJSON features).
+- Drop non-earthquake event types and handle `null` magnitudes.
+
+### 2. Earthquakes near a place
+**Dashboard shows:** A location picker (a preset city list, or a city search that uses the Open-Meteo
+geocoding API) and a radius selector. The result is a table of nearby quakes
+sorted by distance, a "distance ring" chart (0–100, 100–250, 250–500 km), and optionally a map.
+
+**Example endpoint:** `GET /api/quakes/nearby?lat=35.68&lon=139.69&radius_km=500&days=30`
+
+**Backend work:**
+- Query the USGS API with the radius filter, **then compute the haversine distance** for every
+  event yourself (USGS doesn't return it).
+- Remember that coordinates are `[lon, lat, depth]`.
+- Bucket results into distance rings and find the nearest and strongest events.
+
+### 3. Hotspot leaderboard
+**Dashboard shows:** A ranked bar chart of the most active regions, by event count and by total
+energy released, for a chosen period.
+
+**Example endpoint:** `GET /api/quakes/hotspots?days=30&group_by=region|grid`
+
+**Backend work:**
+- Group events either by region parsed from `place` (the text after the last comma), or by a lat/lon
+  grid cell (e.g. 5° × 5°).
+- Compute relative energy per event (energy grows ~32× per magnitude step, so ∝ 10^(1.5·M)),
+  sum it per group, and rank. Note in your docs that the parsing is imperfect.
+
+### 4. Aftershock tracker
+**Dashboard shows:** Pick a recent significant quake and see a time series of aftershocks per
+hour or day after the main shock, plus the largest aftershock and the magnitude gap to the main shock.
+
+**Example endpoint:** `GET /api/quakes/{eventId}/aftershocks?radius_km=100&days=14`
+
+**Backend work:**
+- Fetch the main event by `eventid`, then run a second query in the window around it (by time and radius).
+- Exclude the main shock, bucket the rest by elapsed time, and compute the decay stats.

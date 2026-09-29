@@ -117,3 +117,58 @@ Geocoding:
 - Archive data lags by about 5 days. Use `past_days` on the forecast API for the last few days.
 - Values can be `null` for some hours or models.
 - Many variables fit in one call. Prefer one wide request over several narrow ones.
+
+## Dashboard ideas
+
+Pick one of these, or combine parts of them. In each idea, the backend does real work: it
+joins calls, reshapes the columnar arrays, and computes new values. Just forwarding the
+Open-Meteo JSON to the browser doesn't count.
+
+### 1. City weather showdown
+**Dashboard shows:** 2–4 cities side by side: a card per city with this week's high, low, and total
+rain, a grouped bar chart of daily highs, and a "best day of the week" badge for each city.
+
+**Example endpoint:** `GET /api/weather/compare?cities=Chicago,Austin,Seattle&units=imperial`
+
+**Backend work:**
+- Geocode each city name. Handle "not found" and ambiguous matches.
+- Fetch forecasts, ideally in **one** multi-location call.
+- Convert the columnar `daily` arrays into row objects.
+- Compute weekly high, low, mean, and total precipitation, and rank the cities.
+- Pick a "best day" with a scoring function you design and document, e.g. temperature near 22 °C,
+  low precipitation, and low wind.
+
+### 2. Is this week unusual? (climate anomaly)
+**Dashboard shows:** A line chart of the next 7 days' forecast highs over a shaded band of the
+"normal" range for those calendar days, plus a bar chart of each day's difference from normal.
+
+**Example endpoint:** `GET /api/weather/anomaly?city=Denver&years=10`
+
+**Backend work:**
+- Pull the same calendar days from the **archive API** for the past N years.
+- Group by month and day, then compute the mean, min, and max for each day.
+- Join those normals to the forecast by date and compute the anomaly (forecast − normal).
+- Flag days more than ±X° from normal.
+
+### 3. Outdoor activity planner (weather + air quality)
+**Dashboard shows:** A heatmap of days × hours colored by an "outdoor score", and a list of the best
+2-hour windows in the next 3 days, with the EPA AQI category for each.
+
+**Example endpoint:** `GET /api/outdoor/windows?city=Los+Angeles&activity=run`
+
+**Backend work:**
+- Call both the **forecast** API (temperature, precipitation probability, wind) and the **air-quality**
+  API (`us_aqi`), then join them by timestamp.
+- Map AQI to EPA categories (0–50 Good, 51–100 Moderate, 101–150 Unhealthy for Sensitive Groups, ...).
+- Score each hour, then find the best consecutive windows.
+
+### 4. Climate profile of a city
+**Dashboard shows:** A classic climate chart (monthly average temperature line plus monthly
+precipitation bars), the warmest and wettest months, and a year-over-year warming trend.
+
+**Example endpoint:** `GET /api/climate/profile?city=Berlin&from=1995&to=2024`
+
+**Backend work:**
+- Fetch 30 years of daily archive data (one large call), then aggregate it by month and by year.
+- Compute each year's annual mean and a linear-regression slope (°C per decade).
+- Cache the result, because historical data doesn't change.

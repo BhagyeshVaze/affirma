@@ -103,3 +103,55 @@ Standings:
 - Not every driver has a `code` or `permanentNumber` (especially historical drivers). Some results have
   no `Time` (DNF), and `positionText` can be `"R"` (retired), `"D"` (disqualified), and so on.
 - The `.json` suffix follows Ergast conventions, and JSON is the default either way.
+
+## Dashboard ideas
+
+Pick one of these, or combine parts of them. In each idea, the backend does real work:
+it paginates, converts the string numbers, joins results, and builds cumulative statistics.
+Just forwarding the `MRData` payload doesn't count.
+
+> **Rate limit reminder:** ~200 requests/hour. Most of these ideas need one request per
+> round, so **cache** in your backend. Past seasons never change and can be cached forever.
+
+### 1. Title race progression
+**Dashboard shows:** A season selector, a line chart of each top-N driver's **cumulative points
+after every round**, and a standings table with the gap to the leader.
+
+**Example endpoint:** `GET /api/f1/{season}/progression?top=5`
+
+**Backend work:**
+- Fetch all race results (paginate, or loop over rounds) **and** sprint results.
+- Convert the strings to numbers and sum points per driver per round.
+- Build a running total and reshape it into chart-ready series.
+
+### 2. Teammate head-to-head
+**Dashboard shows:** A row per team with split bars comparing the two drivers: qualifying head-to-head,
+race head-to-head (when both finished), points, and average finishing position.
+
+**Example endpoint:** `GET /api/f1/{season}/teammates`
+
+**Backend work:**
+- Join qualifying and race results by round and constructor.
+- Pair teammates and compare them only when both took part.
+- Handle mid-season driver swaps and DNFs (explain your rules in `DECISIONS.md`).
+
+### 3. Driver season report
+**Dashboard shows:** Pick a driver to see KPI tiles (wins, podiums, DNFs, points per race), a bar chart of
+positions gained or lost per race (grid vs finish), and a breakdown of retirement reasons.
+
+**Example endpoint:** `GET /api/f1/{season}/drivers/{driverId}/report`
+
+**Backend work:**
+- Fetch the driver's results. Compute `grid − position` (treat pit-lane starts, `grid = 0`, carefully),
+  finish rate, and averages.
+- Group `status` values into categories such as Finished, Lapped, Mechanical, and Accident.
+
+### 4. Constructor dominance over the years
+**Dashboard shows:** A stacked area chart of each team's share of total points (or wins) per season across
+a chosen span (e.g. the last 10 seasons), and the most dominant season for each team.
+
+**Example endpoint:** `GET /api/f1/constructors/dominance?from=2014&to=2025`
+
+**Backend work:**
+- Fetch the final constructor standings for each season (one call per season, and cache them).
+- Compute the percentage share of points per team per season and normalize team names and IDs across years.
