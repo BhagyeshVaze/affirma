@@ -46,5 +46,6 @@ These files are written to be handed straight to an AI assistant as context. Som
    parameters. **Always make a real request** (with `curl`, or `../check-apis.sh`) before you trust a
    route or field. Record in `AI_LOG.md` any time the AI got an API detail wrong.
 
-> These docs were last reviewed in September 2026. The official docs linked at the top of each
-> file are the source of truth.
+> Every route, sample request, and response example in these docs was checked against the live APIs
+> on 29 September 2026. APIs can change, so the official docs linked at the top of each file are the
+> source of truth.

@@ -11,10 +11,11 @@ and other central banks.
 
 There are two versions on the same host:
 
-- **v1** (`https://api.frankfurter.dev/v1`) is frozen but kept available. It's simple and has about 30 major currencies from the ECB. **We recommend v1 for this exercise.**
+- **v1** (`https://api.frankfurter.dev/v1`): the API shape is frozen, but its data still updates every business day. It's simple and has 30 major currencies from the ECB. **We recommend v1 for this exercise.**
 - **v2** (`https://api.frankfurter.dev/v2`) blends many central-bank providers and covers more currencies. See the official docs if you want to use it.
 
-> The older host `api.frankfurter.app` may still work, but use `api.frankfurter.dev`.
+> The older host `api.frankfurter.app` returns a 301 redirect to `api.frankfurter.dev/v1`. Use the new host
+> directly, because some HTTP clients don't follow redirects by default.
 
 ## v1 endpoints
 
@@ -49,19 +50,20 @@ curl "https://api.frankfurter.dev/v1/currencies"
 Latest or single date:
 
 ```json
-{ "amount": 1.0, "base": "USD", "date": "2026-09-28",
-  "rates": { "EUR": 0.9123, "GBP": 0.7811, "JPY": 147.52 } }
+{ "amount": 1.0, "base": "USD", "date": "2026-09-29",
+  "rates": { "EUR": 0.88067, "GBP": 0.75489, "JPY": 157.12 } }
 ```
 
-Time series (keyed by date):
+Time series (keyed by date). This is the real response for `2024-01-01..2024-06-30`. Notice that it
+starts on **2023-12-29**, the last business day before the requested start:
 
 ```json
 {
   "amount": 1.0, "base": "USD",
-  "start_date": "2024-01-02", "end_date": "2024-06-28",
+  "start_date": "2023-12-29", "end_date": "2024-06-28",
   "rates": {
-    "2024-01-02": { "EUR": 0.9106, "GBP": 0.7869 },
-    "2024-01-03": { "EUR": 0.9145, "GBP": 0.7903 }
+    "2023-12-29": { "EUR": 0.90498, "GBP": 0.78647 },
+    "2024-01-02": { "EUR": 0.91274, "GBP": 0.79085 }
   }
 }
 ```
@@ -76,18 +78,25 @@ Currencies:
 
 Endpoints that appear in the v2 docs include `GET /v2/rates?base=USD&quotes=EUR,GBP`,
 `GET /v2/rate/{base}/{quote}`, `GET /v2/providers/ecb/rates?date=YYYY-MM-DD`,
-and `GET /v2/coverage`. The shapes differ from v1, so read https://frankfurter.dev/ before using it.
+and `GET /v2/coverage`. v2 returns flat rows instead of v1's nested objects, e.g.
+`/v2/rates?base=USD&quotes=EUR,GBP` →
+`[{"date":"2026-09-29","base":"USD","quote":"EUR","rate":0.87945}, ...]`.
+v2 values can differ slightly from v1 because they blend several providers. Pick one version and stick with it.
 
 ## Gotchas
 
 - Rates are published **once per business day** (around 16:00 CET). There's no data for weekends
   or holidays, so a time series skips those dates. Account for gaps when computing
   "daily" returns or charting.
-- `start_date` in a response may be later than the date you asked for, because it snaps to a business day.
+- A range's `start_date` snaps **back** to the last business day on or before the date you asked for
+  (asking for `2024-01-01..` returns data from `2023-12-29`). A single-date request on a weekend returns
+  the previous business day's rates, with that earlier `date` in the response.
+- Long ranges stay daily and aren't downsampled (10 years ≈ 2,500 dates in one response).
 - The time-series `rates` object is keyed by date string. Sort the keys before charting.
   Don't rely on object key order.
 - Rates are *reference* rates, not live trading prices.
-- An unknown currency code returns HTTP 404 or 422 with `{ "message": "not found" }`.
+- An unknown currency code (in `base` or `symbols`) returns HTTP 404 with `{ "message": "not found" }`.
+- v1 has exactly 30 currencies (ECB list). Check `/v1/currencies` rather than hard-coding them.
 
 ## Dashboard ideas
 

@@ -59,27 +59,29 @@ curl "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson\
 ```json
 {
   "type": "FeatureCollection",
-  "metadata": { "generated": 1790000000000, "title": "USGS Magnitude 4.5+ Earthquakes, Past Week", "count": 104 },
+  "metadata": { "generated": 1790714399000, "title": "USGS Magnitude 4.5+ Earthquakes, Past Week", "status": 200, "count": 125 },
+  "bbox": [-179.9919, -60.2661, 10, 179.6666, 82.6385, 602.188],
   "features": [
     {
       "type": "Feature",
-      "id": "us7000abcd",
+      "id": "us6000tycv",
       "properties": {
-        "mag": 5.4,
-        "magType": "mww",
-        "place": "45 km SSW of Somewhere, Chile",
-        "time": 1789912345678,
-        "updated": 1789915555555,
-        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000abcd",
-        "detail": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/us7000abcd.geojson",
-        "felt": 12,
-        "alert": "green",
+        "mag": 4.8,
+        "magType": "mb",
+        "place": "44 km NNE of Fangale’ounga, Tonga",
+        "time": 1790698376037,
+        "updated": 1790702124040,
+        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000tycv",
+        "detail": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/us6000tycv.geojson",
+        "felt": null,
+        "alert": null,
+        "status": "reviewed",
         "tsunami": 0,
-        "sig": 449,
+        "sig": 354,
         "type": "earthquake",
-        "title": "M 5.4 - 45 km SSW of Somewhere, Chile"
+        "title": "M 4.8 - 44 km NNE of Fangale’ounga, Tonga"
       },
-      "geometry": { "type": "Point", "coordinates": [-71.23, -33.45, 10.0] }
+      "geometry": { "type": "Point", "coordinates": [-174.1824, -19.3714, 10] }
     }
   ]
 }
@@ -89,11 +91,19 @@ curl "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson\
 
 - `geometry.coordinates` is **`[longitude, latitude, depth_km]`**, which is the reverse of the usual lat/lon order.
 - `time` and `updated` are **Unix epoch milliseconds** (UTC).
-- `mag`, `felt`, `alert` and others may be `null`.
+- `mag`, `felt`, `alert` and others may be `null`. `alert` is `null` for the vast majority of events.
+- `/query` responses have **no `metadata.count`** (only the summary feeds do). Use `features.length`.
+  Pagination uses `limit` and a 1-based `offset`.
 - `place` is free text. There's no country field. Parse the text after the last comma
-  as a rough region, or reverse-geocode the coordinates.
-- `properties.type` isn't always `earthquake`. It can also be `quarry blast`, `explosion`, and so on.
-- Queries returning more than 20,000 events fail with HTTP 400. Narrow the range or use `/count` first.
+  as a rough region, or reverse-geocode the coordinates. US places use **state abbreviations**
+  (`"10 km WNW of The Geysers, CA"`), but Alaska and non-US places use full names
+  (`"69 km WNW of Tyonek, Alaska"`), so normalize before grouping.
+- `properties.type` isn't always `earthquake`. In a sample month, about 2% of events were `quarry blast`,
+  `explosion`, `ice quake`, `mining explosion`, or `landslide`.
+- The `all_month` feed is large (about 10,000 events, several MB). Prefer `2.5_` or `4.5_` feeds
+  unless you need small quakes.
+- Queries matching more than 20,000 events fail with HTTP 400 and a **plain-text** (not JSON) body:
+  `"964250 matching events exceeds search limit of 20000..."`. Narrow the range or use `/count` first.
 - Prefer the summary feeds for "recent" dashboards, since they're pre-generated and very fast.
 
 ## Dashboard ideas
