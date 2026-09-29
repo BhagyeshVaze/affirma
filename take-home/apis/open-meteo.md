@@ -11,6 +11,22 @@ Built from national weather services' models (NOAA, ECMWF, DWD, and others).
   returns HTTP 429 with `{"error":true,"reason":"Daily API request limit exceeded..."}`.
 - **Format:** JSON (CSV and XLSX available with `format=csv|xlsx`)
 
+## Sample data
+
+Real data from this API:
+
+| Day | Low (°F) | High (°F) |
+|---|---:|---:|
+| Tue Sep 29 | 52.8 | 74.2 |
+| Wed Sep 30 | 58.3 | 67.5 |
+| Thu Oct 1 | 61.9 | 70.0 |
+| Fri Oct 2 | 57.2 | 61.9 |
+| Sat Oct 3 | 54.5 | 65.1 |
+| Sun Oct 4 | 55.2 | 65.7 |
+| Mon Oct 5 | 52.0 | 57.8 |
+
+*Chicago's 7-day forecast from one `/v1/forecast` call with `daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit`, fetched 29 Sep 2026. Idea 1 (City weather showdown) would compare several cities like this.*
+
 ## Endpoints
 
 | Purpose | Method & URL |
@@ -114,6 +130,20 @@ Geocoding:
 | 80–82 | Rain showers |
 | 85–86 | Snow showers |
 | 95–99 | Thunderstorm (96/99 with hail) |
+
+## Typical backend flow
+
+How data usually moves through your backend for this API:
+
+```mermaid
+flowchart LR
+    A["City name<br/>from the UI"] --> G["Geocoding API<br/>/v1/search"]
+    G -- "lat, lon" --> F["Forecast / archive /<br/>air-quality API"]
+    F --> Z["Zip columnar arrays<br/>into row objects"]
+    Z --> C["Compute: aggregates,<br/>scores, anomalies"]
+    C --> J["Your JSON<br/>for the chart"]
+    K[("Cache")] -.-> G & F
+```
 
 ## Gotchas
 

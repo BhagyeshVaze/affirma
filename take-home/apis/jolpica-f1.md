@@ -13,6 +13,18 @@ so most Ergast tutorials work if you swap the host.
 
 Base URL: `https://api.jolpi.ca/ergast/f1`
 
+## Sample data
+
+Real data from this API:
+
+| Driver | After round 6 | After round 12 | After round 18 | Final (round 24) |
+|---|---:|---:|---:|---:|
+| Norris | 115 | 226 | 314 | 423 |
+| Verstappen | 99 | 165 | 273 | 421 |
+| Piastri | 131 | 234 | 336 | 410 |
+
+*Built from all pages of `2025/results.json` plus `2025/sprint.json` (7 requests), summed per driver per round. Leave out the sprints and every total is wrong: Norris would end on 394, not 423. This is the kind of data idea 1 (Title race progression) is built on.*
+
 ## Endpoints
 
 `{season}` is a year like `2025`, or `current`. `{round}` is a round number, or `last`.
@@ -97,6 +109,20 @@ Standings:
 ```
 
 *(These values are real responses from `2025/5/results.json` and `2025/driverStandings.json`, trimmed.)*
+
+## Typical backend flow
+
+How data usually moves through your backend for this API:
+
+```mermaid
+flowchart LR
+    R["results.json<br/>(all pages)"] --> M["Merge rows<br/>by round"]
+    SP["sprint.json<br/>(all pages)"] --> M
+    M --> N["Convert string<br/>numbers"]
+    N --> C["Compute: cumulative points,<br/>head-to-heads, rankings"]
+    C --> J["Your JSON<br/>for the chart"]
+    K[("Cache: past seasons<br/>never change")] -.-> R & SP
+```
 
 ## Gotchas
 

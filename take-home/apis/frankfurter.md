@@ -9,6 +9,20 @@ and other central banks.
 - **Rate limits:** no hard limit for reasonable use. Rates change once per business day, so cache for hours.
 - **Format:** JSON
 
+## Sample data
+
+Real data from this API:
+
+| Currency | 1 USD on 2024-12-31 | 1 USD on 2025-12-31 | Index at year end | Year low | Year high |
+|---|---:|---:|---:|---:|---:|
+| EUR | 0.96256 | 0.85106 | 88.4 | 0.84481 | 0.98058 |
+| GBP | 0.79813 | 0.74264 | 93.0 | 0.72718 | 0.82526 |
+| JPY | 156.95 | 156.67 | 99.8 | 140.34 | 158.41 |
+
+*One `/v1/2025-01-01..2025-12-31?base=USD&symbols=EUR,GBP,JPY` call (256 business days), each series divided by its first value and multiplied by 100 so they're comparable. This is the kind of data idea 1 (Currency performance leaderboard) is built on.*
+
+## Versions
+
 There are two versions on the same host:
 
 - **v1** (`https://api.frankfurter.dev/v1`): the API shape is frozen, but its data still updates every business day. It's simple and has 30 major currencies from the ECB. **We recommend v1 for this exercise.**
@@ -83,6 +97,19 @@ and `GET /v2/coverage`. v2 returns flat rows instead of v1's nested objects, e.g
 `[{"date":"2026-09-29","base":"USD","quote":"EUR","rate":0.87945}, ...]`.
 v2 values can differ slightly from v1 because they blend several providers. Pick one version and stick with it.
 
+## Typical backend flow
+
+How data usually moves through your backend for this API:
+
+```mermaid
+flowchart LR
+    T["Time series<br/>/v1/{start}..{end}"] --> S["Sort date keys,<br/>pivot to one series<br/>per currency"]
+    S --> G["Handle weekend and<br/>holiday gaps"]
+    G --> C["Compute: rebase, returns,<br/>volatility, moving averages"]
+    C --> J["Your JSON<br/>for the chart"]
+    K[("Cache for hours")] -.-> T
+```
+
 ## Gotchas
 
 - Rates are published **once per business day** (around 16:00 CET). There's no data for weekends
@@ -96,6 +123,9 @@ v2 values can differ slightly from v1 because they blend several providers. Pick
   Don't rely on object key order.
 - Rates are *reference* rates, not live trading prices.
 - An unknown currency code (in `base` or `symbols`) returns HTTP 404 with `{ "message": "not found" }`.
+  So does asking for the base currency as a symbol (`?symbols=EUR` with the default `EUR` base).
+- **Python's built-in `urllib` is blocked** (HTTP 403 for its default `Python-urllib` User-Agent). Use
+  `httpx` or `requests`, which work fine, or set your own `User-Agent` header.
 - v1 has exactly 30 currencies (ECB list). Check `/v1/currencies` rather than hard-coding them.
 
 ## Dashboard ideas

@@ -1,30 +1,45 @@
 # Choose Your API
 
-Pick **one** of these four APIs. They're all free, need **no API key or sign-up**, are
-reliable, and return data that needs real backend work (reshaping, aggregating, joining,
-calculating) before it's useful on a dashboard.
+Pick **one** of these four APIs. They're all free, need **no API key or sign-up**, and return data
+that needs real backend work (reshaping, aggregating, joining, calculating) before it's useful on
+a dashboard.
 
-| API | Domain | File | Why it's a good backend exercise |
-|-----|--------|------|----------------------------------|
-| **Open-Meteo** | Weather, climate & air quality | [open-meteo.md](./open-meteo.md) | Columnar arrays to reshape, several sub-APIs to join (geocoding + forecast + archive + air quality), and statistics over long histories |
-| **USGS Earthquakes** | Earthquakes worldwide | [usgs-earthquakes.md](./usgs-earthquakes.md) | GeoJSON to flatten, geo math (haversine distance), bucketing, and ranking |
-| **Frankfurter** | Currency exchange rates | [frankfurter.md](./frankfurter.md) | Date-keyed time series with gaps, % change, volatility, moving averages, and derived cross rates |
-| **Jolpica F1** | Formula 1 results since 1950 | [jolpica-f1.md](./jolpica-f1.md) | Pagination, all-string numbers, joins across results, cumulative stats, and a tight rate limit that makes caching necessary |
+## At a glance
 
-Each file contains:
+| | [Open-Meteo](./open-meteo.md) | [USGS Earthquakes](./usgs-earthquakes.md) | [Frankfurter](./frankfurter.md) | [Jolpica F1](./jolpica-f1.md) |
+|---|---|---|---|---|
+| **Domain** | Weather, climate, air quality | Earthquakes worldwide | Currency exchange rates | Formula 1 since 1950 |
+| **Data shape** | Columnar arrays (`time[]` + parallel value arrays) | GeoJSON features | Rates keyed by date string | Deeply nested `MRData`, paginated |
+| **Rate limit** | 10,000 calls/day (long ranges count as more) | None published | None published | 4/second, 500/hour |
+| **Main backend challenge** | Zipping arrays into rows, joining sub-APIs (geocoding + forecast + history + air quality), long-range statistics | Flattening GeoJSON, geo math (haversine), bucketing and ranking | Time series with weekend gaps, returns, volatility, moving averages, cross rates | Pagination, all-string numbers, merging race + sprint results, caching under a tight limit |
+| **Good fit if you like** | Weather and maps | Geo and data aggregation | Finance and statistics | Sports and data wrangling |
 
-- **At a glance:** base URL, auth, rate limits, format
-- **Endpoints:** the routes and query parameters you'll need
-- **Example requests:** ready-to-run `curl` commands
-- **Response shape:** trimmed JSON examples
-- **Gotchas:** details that commonly cause bugs
-- **Dashboard ideas:** four suggested dashboards, each with what to display, an example backend
-  endpoint, and the backend work it requires
+## What's in each file
+
+| Section | What it gives you |
+|---------|-------------------|
+| **At a glance** | Base URL, auth, rate limits, format |
+| **Endpoints** | The routes and query parameters you'll need |
+| **Example requests** | Ready-to-run `curl` commands |
+| **Response shape** | Trimmed real JSON responses |
+| **Typical backend flow** | A diagram of how data usually moves through your backend for this API |
+| **Gotchas** | Details that commonly cause bugs |
+| **Dashboard ideas** | Four suggested dashboards, each with what to display, an example endpoint, and the backend work it requires |
 
 You can build one of the suggested dashboards, combine ideas, or design your own. Just make sure
 your backend does more than pass data through.
 
 ## Using these docs with AI
+
+```mermaid
+flowchart LR
+    A["Give the AI<br/>README + API file"] --> B["Draft PLAN.md<br/>together"]
+    B --> C["Commit the plan<br/>and prompts to ai/"]
+    C --> D["Build in small<br/>steps with the AI"]
+    D --> E["Verify with real<br/>requests + tests"]
+    E -- "AI got it wrong?" --> F["Fix it and note it<br/>in AI_LOG.md"]
+    F --> D
+```
 
 These files are written to be handed straight to an AI assistant as context. Some ways to use them:
 
@@ -47,6 +62,7 @@ These files are written to be handed straight to an AI assistant as context. Som
    parameters. **Always make a real request** (with `curl`, or `../check-apis.sh`) before you trust a
    route or field. Record in `AI_LOG.md` any time the AI got an API detail wrong.
 
+> [!NOTE]
 > Every route, sample request, and response example in these docs was checked against the live APIs
 > on 29 September 2026. APIs can change, so the official docs linked at the top of each file are the
 > source of truth.

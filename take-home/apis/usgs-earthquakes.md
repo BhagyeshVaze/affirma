@@ -8,6 +8,23 @@ Near-real-time and historical earthquake data from the U.S. Geological Survey, c
 - **Rate limits:** none published. Be reasonable and cache (feeds update about every minute).
 - **Format:** GeoJSON (also CSV, KML, QuakeML)
 
+## Sample data
+
+Real data from this API:
+
+| UTC day | M4.5+ events | Complete day? |
+|---|---:|---|
+| Tue Sep 22 | 3 | no (partial) |
+| Wed Sep 23 | 14 | yes |
+| Thu Sep 24 | 12 | yes |
+| Fri Sep 25 | 18 | yes |
+| Sat Sep 26 | 28 | yes |
+| Sun Sep 27 | 12 | yes |
+| Mon Sep 28 | 24 | yes |
+| Tue Sep 29 | 15 | no (partial) |
+
+*Counts per UTC day from the `4.5_week.geojson` summary feed, fetched 29 Sep 2026. The feed is a rolling 7-day window, so the first and last days are partial. This is the kind of data idea 1 (Global activity overview) is built on.*
+
 ## Endpoints
 
 ### 1. Summary feeds (prebuilt, fast, cached by USGS)
@@ -87,6 +104,19 @@ curl "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson\
 }
 ```
 
+## Typical backend flow
+
+How data usually moves through your backend for this API:
+
+```mermaid
+flowchart LR
+    Q["Summary feed<br/>or /query"] --> X["Filter: type = earthquake,<br/>mag not null"]
+    X --> P["Flatten GeoJSON<br/>coords = [lon, lat, depth]"]
+    P --> C["Compute: bucket by day or<br/>magnitude, haversine, rank"]
+    C --> J["Your JSON<br/>for the chart"]
+    K[("Cache ~1 min")] -.-> Q
+```
+
 ## Gotchas
 
 - `geometry.coordinates` is **`[longitude, latitude, depth_km]`**, which is the reverse of the usual lat/lon order.
@@ -104,6 +134,9 @@ curl "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson\
   unless you need small quakes.
 - Queries matching more than 20,000 events fail with HTTP 400 and a **plain-text** (not JSON) body:
   `"964250 matching events exceeds search limit of 20000..."`. Narrow the range or use `/count` first.
+- The summary feeds are **rolling windows** (e.g. the last 7×24 hours), so when you bucket by day the
+  first and last days are partial. On 29 Sep 2026 the week feed had 3 events on its first day, against
+  12–28 on full days. Drop or label partial days so the chart doesn't show a fake dip.
 - Prefer the summary feeds for "recent" dashboards, since they're pre-generated and very fast.
 
 ## Dashboard ideas
@@ -120,7 +153,7 @@ chart of quakes per day, a magnitude histogram, and a table of the 10 strongest.
 
 **Backend work:**
 - Pick the right summary feed (or query) for the requested period.
-- Bucket by day (handle the time zone) and by magnitude band (<2, 2–4, 4–6, 6+).
+- Bucket by day (handle the time zone and the partial first/last days) and by magnitude band (<2, 2–4, 4–6, 6+).
 - Compute the KPIs, sort, and return a compact shape (not raw GeoJSON features).
 - Drop non-earthquake event types and handle `null` magnitudes.
 
