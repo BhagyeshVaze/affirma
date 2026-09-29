@@ -8,12 +8,12 @@ Build a **Python backend** that pulls data from a public API and computes someth
 ## AI
 
 > [!TIP]
-> **Use AI.** Any assistant or agent is fine, for any part of the work. We're assessing how well
-> you work with AI: how you plan, direct it, and review its output.
+> **We highly encourage using AI** if you can. Any assistant or agent is fine, for any part of the
+> work. We want to see how you work with it: how you plan, direct it, and review its output.
 
-> [!IMPORTANT]
-> **Commit everything you gave the AI.** Every plan, TDD, spec, or prompt file goes in `ai/`.
-> Without it, your submission is incomplete.
+> [!NOTE]
+> **Share how you used it.** Put the key plans, TDDs, or specs you gave the AI in `ai/`.
+> You don't need every prompt, just the ones that shaped the work.
 
 ## The task
 
@@ -27,7 +27,7 @@ Build a **Python backend** that pulls data from a public API and computes someth
    - handle errors: timeouts, bad input, rate limits
 5. **Build the frontend (React).** It calls your backend only. Include at least one chart and one
    control, such as a filter, date range, or search box.
-6. **Write the docs** listed below.
+6. **Write the [docs](#docs).**
 
 ### Stack
 
@@ -51,7 +51,7 @@ All free. No key, no sign-up.
 
 Run [`./check-apis.sh`](./check-apis.sh) to check they're reachable from your network.
 
-## Required docs
+## Docs
 
 Put these in `solution/`:
 
@@ -59,11 +59,9 @@ Put these in `solution/`:
 | --- | --- |
 | `README.md` | How to run the backend and frontend. What the dashboard shows. |
 | `PLAN.md` | Written before coding: endpoints, response shapes, UI layout, risks. Update it as you go. |
-| `ai/` | Every plan, TDD, spec, or prompt you gave an AI, as given. Include revisions. |
-| `AI_LOG.md` | Tools used, what you asked for, what you changed, and **at least one thing the AI got wrong**. |
+| `ai/` | If you used AI: the key plans, TDDs, or specs you gave it. Not every prompt. |
+| `AI_LOG.md` | If you used AI: tools, what you asked for, what you changed, and where it got things wrong. |
 | `DECISIONS.md` | Optional. Trade-offs, known bugs, next steps. |
-
-If it guided the AI, commit it.
 
 **Commit in steps.** Plan first, then small commits. Don't squash.
 
@@ -101,8 +99,7 @@ Tests are optional. A few `pytest` tests on your calculations help.
 - [ ] Backend and frontend run from your README
 - [ ] 2+ endpoints that compute something
 - [ ] `PLAN.md` is the first commit
-- [ ] Everything you gave the AI is in `ai/`
-- [ ] `AI_LOG.md` names something the AI got wrong
+- [ ] If you used AI: key plans or specs in `ai/`, and `AI_LOG.md` explains how
 - [ ] No secrets, `node_modules/`, virtualenvs, or build output
 
 Questions? Ask. It's a good sign.

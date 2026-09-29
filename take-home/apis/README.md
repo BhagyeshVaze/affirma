@@ -13,8 +13,8 @@ Each doc has: endpoints, examples, response shapes, sample data, gotchas, and fo
 
 ## Using these docs with AI
 
-1. **Plan.** Give your AI `../README.md` and your API's doc. Ask for a plan. Commit the prompt and
-   plan to `ai/`. Example prompt:
+1. **Plan.** Give your AI `../README.md` and your API's doc. Ask for a plan. Save the plan (and any
+   key prompts) in `ai/`. Example prompt:
 
    > Read `take-home/README.md` and `take-home/apis/usgs-earthquakes.md`. Plan the "Earthquakes
    > near a place" dashboard. For each endpoint give the route, params, upstream calls, math,
