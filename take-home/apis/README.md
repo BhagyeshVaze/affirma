@@ -29,7 +29,8 @@ your backend does more than pass data through.
 These files are written to be handed straight to an AI assistant as context. Some ways to use them:
 
 1. **Planning.** Give your assistant [`../README.md`](../README.md) and the file for your chosen API,
-   and ask it to help draft `PLAN.md`. For example:
+   and ask it to help draft `PLAN.md`. Commit the prompt and any plan or TDD you give the AI to your
+   `ai/` folder (this is required; see the main README). For example:
 
    > Read `take-home/README.md` and `take-home/apis/usgs-earthquakes.md`. I want to build the
    > "Earthquakes near a place" dashboard. Propose the backend endpoints: for each one give the
@@ -37,8 +38,8 @@ These files are written to be handed straight to an AI assistant as context. Som
    > error cases. Then sketch the frontend components. Call out rate-limit and caching concerns
    > and anything in the Gotchas section that affects the design.
 
-2. **Typing the upstream data.** Ask it to turn the "Response shape" section into Pydantic models,
-   TypeScript types, or Zod schemas.
+2. **Typing the upstream data.** Ask it to turn the "Response shape" section into Pydantic models for
+   your Python backend (and TypeScript types for your React frontend, if you use TypeScript).
 
 3. **Avoiding known bugs.** Point the assistant at the **Gotchas** section when it writes parsing code.
 
