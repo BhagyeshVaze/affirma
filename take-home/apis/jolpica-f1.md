@@ -110,20 +110,6 @@ Standings:
 
 *(These values are real responses from `2025/5/results.json` and `2025/driverStandings.json`, trimmed.)*
 
-## Typical backend flow
-
-How data usually moves through your backend for this API:
-
-```mermaid
-flowchart LR
-    R["results.json<br/>(all pages)"] --> M["Merge rows<br/>by round"]
-    SP["sprint.json<br/>(all pages)"] --> M
-    M --> N["Convert string<br/>numbers"]
-    N --> C["Compute: cumulative points,<br/>head-to-heads, rankings"]
-    C --> J["Your JSON<br/>for the chart"]
-    K[("Cache: past seasons<br/>never change")] -.-> R & SP
-```
-
 ## Gotchas
 
 - **Every number is a string** (`"points": "25"`, `"total": "479"`). Convert them yourself.

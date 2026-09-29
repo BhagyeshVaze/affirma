@@ -131,20 +131,6 @@ Geocoding:
 | 85–86 | Snow showers |
 | 95–99 | Thunderstorm (96/99 with hail) |
 
-## Typical backend flow
-
-How data usually moves through your backend for this API:
-
-```mermaid
-flowchart LR
-    A["City name<br/>from the UI"] --> G["Geocoding API<br/>/v1/search"]
-    G -- "lat, lon" --> F["Forecast / archive /<br/>air-quality API"]
-    F --> Z["Zip columnar arrays<br/>into row objects"]
-    Z --> C["Compute: aggregates,<br/>scores, anomalies"]
-    C --> J["Your JSON<br/>for the chart"]
-    K[("Cache")] -.-> G & F
-```
-
 ## Gotchas
 
 - Limits are **per IP address**. On a shared network (office, VPN, cloud dev box), other people's

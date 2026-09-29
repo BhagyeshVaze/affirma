@@ -104,19 +104,6 @@ curl "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson\
 }
 ```
 
-## Typical backend flow
-
-How data usually moves through your backend for this API:
-
-```mermaid
-flowchart LR
-    Q["Summary feed<br/>or /query"] --> X["Filter: type = earthquake,<br/>mag not null"]
-    X --> P["Flatten GeoJSON<br/>coords = [lon, lat, depth]"]
-    P --> C["Compute: bucket by day or<br/>magnitude, haversine, rank"]
-    C --> J["Your JSON<br/>for the chart"]
-    K[("Cache ~1 min")] -.-> Q
-```
-
 ## Gotchas
 
 - `geometry.coordinates` is **`[longitude, latitude, depth_km]`**, which is the reverse of the usual lat/lon order.

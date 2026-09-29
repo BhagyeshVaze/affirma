@@ -22,7 +22,6 @@ a dashboard.
 | **Endpoints** | The routes and query parameters you'll need |
 | **Example requests** | Ready-to-run `curl` commands |
 | **Response shape** | Trimmed real JSON responses |
-| **Typical backend flow** | A diagram of how data usually moves through your backend for this API |
 | **Gotchas** | Details that commonly cause bugs |
 | **Dashboard ideas** | Four suggested dashboards, each with what to display, an example endpoint, and the backend work it requires |
 
@@ -30,16 +29,6 @@ You can build one of the suggested dashboards, combine ideas, or design your own
 your backend does more than pass data through.
 
 ## Using these docs with AI
-
-```mermaid
-flowchart LR
-    A["Give the AI<br/>README + API file"] --> B["Draft PLAN.md<br/>together"]
-    B --> C["Commit the plan<br/>and prompts to ai/"]
-    C --> D["Build in small<br/>steps with the AI"]
-    D --> E["Verify with real<br/>requests + tests"]
-    E -- "AI got it wrong?" --> F["Fix it and note it<br/>in AI_LOG.md"]
-    F --> D
-```
 
 These files are written to be handed straight to an AI assistant as context. Some ways to use them:
 

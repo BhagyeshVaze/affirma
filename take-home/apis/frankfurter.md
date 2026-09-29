@@ -97,19 +97,6 @@ and `GET /v2/coverage`. v2 returns flat rows instead of v1's nested objects, e.g
 `[{"date":"2026-09-29","base":"USD","quote":"EUR","rate":0.87945}, ...]`.
 v2 values can differ slightly from v1 because they blend several providers. Pick one version and stick with it.
 
-## Typical backend flow
-
-How data usually moves through your backend for this API:
-
-```mermaid
-flowchart LR
-    T["Time series<br/>/v1/{start}..{end}"] --> S["Sort date keys,<br/>pivot to one series<br/>per currency"]
-    S --> G["Handle weekend and<br/>holiday gaps"]
-    G --> C["Compute: rebase, returns,<br/>volatility, moving averages"]
-    C --> J["Your JSON<br/>for the chart"]
-    K[("Cache for hours")] -.-> T
-```
-
 ## Gotchas
 
 - Rates are published **once per business day** (around 16:00 CET). There's no data for weekends

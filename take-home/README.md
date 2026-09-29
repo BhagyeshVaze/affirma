@@ -29,14 +29,7 @@ and a React dashboard that shows it off.**
 
 ## What you'll build
 
-```mermaid
-flowchart LR
-    FE["<b>React dashboard</b><br/>charts · filters · states"]
-    BE["<b>Your Python backend</b><br/>validate · transform · compute · cache"]
-    API[("<b>Public API</b><br/>no key, no sign-up")]
-    FE -- "GET /api/… <br/>(JSON you designed)" --> BE
-    BE -- "HTTPS GET<br/>(raw upstream JSON)" --> API
-```
+**React dashboard → your Python backend → public API**
 
 The browser **only talks to your backend**. Your backend calls the public API, then reshapes the
 data and calculates something new before the frontend ever sees it.
@@ -100,20 +93,7 @@ If a document guided the AI's work, we want to see it. **When in doubt, commit i
 
 ### Commit history counts
 
-Commit in steps, starting with your plan. Don't squash everything into one commit. A good
-history looks something like this:
-
-```mermaid
-gitGraph
-    commit id: "fork"
-    commit id: "PLAN.md + ai/plan.md"
-    commit id: "backend: scaffold FastAPI"
-    commit id: "backend: /api/summary + tests"
-    commit id: "ai/: revised plan"
-    commit id: "backend: caching + errors"
-    commit id: "frontend: dashboard"
-    commit id: "README + AI_LOG.md"
-```
+Commit in steps, starting with your plan. Don't squash everything into one commit.
 
 ---
 
