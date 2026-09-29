@@ -17,7 +17,7 @@ Build a **Python backend** that pulls data from a public API and computes someth
 
 ## The task
 
-1. **Pick an API** from the table below. Each links to a reference doc you can give your AI.
+1. **Pick an API.** Use one of our four documented APIs, or another free one from the list below.
 2. **Pick a dashboard.** Use one of our ideas or bring your own.
 3. **Write a plan or TDD** in `docs/`. Commit it before any code.
 4. **Build the backend (Python).** At least 2 endpoints that:
@@ -60,8 +60,30 @@ All free. No key, no sign-up.
 
 Each API doc has details for its ideas: what to show, an example endpoint, and the backend work.
 
-**Have your own idea? Go for it.** Build any dashboard you like on one of these APIs, as long as the
-backend does real work. Explain the idea in your plan.
+**Have your own idea? Go for it.** Build any dashboard you like, as long as the backend does real
+work. Explain the idea in your plan.
+
+### Other free APIs
+
+You can also use another free API that needs no key. We haven't documented these in depth, so check
+that one works before you commit to it.
+
+| API | Data |
+| --- | --- |
+| [World Bank](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392) | Country economics and population, yearly |
+| [CityBikes](https://api.citybik.es/v2/) | Live bike-share stations worldwide |
+| [Hacker News](https://github.com/HackerNews/API) / [Algolia HN Search](https://hn.algolia.com/api) | Tech news stories and comments |
+| [PokéAPI](https://pokeapi.co/docs/v2) | Pokémon stats and types |
+| [Open Library](https://openlibrary.org/developers/api) | Books and authors |
+| [National Weather Service](https://www.weather.gov/documentation/services-web-api) | US forecasts and alerts. Needs a `User-Agent` header |
+| [Nager.Date](https://date.nager.at/Api) | Public holidays by country |
+| [Art Institute of Chicago](https://api.artic.edu/docs/) | Artworks and artists |
+| [The Met Collection](https://metmuseum.github.io/) | Artworks and departments |
+| [US Treasury Fiscal Data](https://fiscaldata.treasury.gov/api-documentation/) | US debt, spending, and revenue |
+| [openFDA](https://open.fda.gov/apis/) | Drug and food safety reports |
+| [OpenF1](https://openf1.org/) | Live and recent F1 timing data |
+| [UK Carbon Intensity](https://carbon-intensity.github.io/api-definitions/) | UK electricity carbon intensity and fuel mix |
+| [Open Food Facts](https://openfoodfacts.github.io/openfoodfacts-server/api/) | Food products and nutrition |
 
 Run [`./check-apis.sh`](./check-apis.sh) to check they're reachable from your network.
 
@@ -69,7 +91,7 @@ Run [`./check-apis.sh`](./check-apis.sh) to check they're reachable from your ne
 
 | Path | Contents |
 | --- | --- |
-| `README.md` | How to run the backend and frontend. What the dashboard shows. |
+| `README.md` | How to run the backend and frontend. What the dashboard shows, with screenshots. |
 | `docs/` | Plans, TDDs, decisions, and any key inputs you gave an AI. |
 
 Good things to put in `docs/`:
@@ -115,6 +137,7 @@ Tests are optional. A few `pytest` tests on your calculations help.
 - [ ] Backend handles timeouts, bad input, and rate limits
 - [ ] Frontend calls only your backend, with at least one chart and one control
 - [ ] README explains how to run it in under 5 minutes
+- [ ] README includes screenshots of the dashboard
 - [ ] `docs/` has your plan, decisions, and key AI inputs (if you used AI)
 - [ ] No secrets, `node_modules/`, virtualenvs, or build output
 
