@@ -14,7 +14,7 @@ Each doc has: endpoints, examples, response shapes, sample data, gotchas, and fo
 ## Using these docs with AI
 
 1. **Plan.** Give your AI `../README.md` and your API's doc. Ask for a plan. Save the plan (and any
-   key prompts) in `ai/`. Example prompt:
+   key prompts) in `docs/`. Example prompt:
 
    > Read `take-home/README.md` and `take-home/apis/usgs-earthquakes.md`. Plan the "Earthquakes
    > near a place" dashboard. For each endpoint give the route, params, upstream calls, math,
@@ -22,7 +22,7 @@ Each doc has: endpoints, examples, response shapes, sample data, gotchas, and fo
 
 2. **Types.** Ask it to turn the response shapes into Pydantic models.
 3. **Gotchas.** Point it at the Gotchas section when it writes parsing code.
-4. **Verify.** AI invents parameters. Test every route with a real request. Log mistakes in `AI_LOG.md`.
+4. **Verify.** AI invents parameters. Test every route with a real request. Note its mistakes in `docs/`.
 
 > [!NOTE]
 > Checked against the live APIs on 29 Sep 2026. If something differs, the official docs win.

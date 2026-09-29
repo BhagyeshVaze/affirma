@@ -12,14 +12,14 @@ Build a **Python backend** that pulls data from a public API and computes someth
 > work. We want to see how you work with it: how you plan, direct it, and review its output.
 
 > [!NOTE]
-> **Share how you used it.** Put the key plans, TDDs, or specs you gave the AI in `ai/`.
+> **Share how you used it.** Put the key plans, TDDs, or specs you gave the AI in `docs/`.
 > You don't need every prompt, just the ones that shaped the work.
 
 ## The task
 
 1. **Pick an API** from the table below. Each links to a reference doc you can give your AI.
 2. **Pick a dashboard.** Each API doc has four ideas, or design your own.
-3. **Write a plan** (`PLAN.md` or a TDD). Commit it before any code.
+3. **Write a plan or TDD** in `docs/`. Commit it before any code.
 4. **Build the backend (Python).** At least 2 endpoints that:
    - call the API
    - transform or compute something (a pass-through doesn't count)
@@ -53,15 +53,17 @@ Run [`./check-apis.sh`](./check-apis.sh) to check they're reachable from your ne
 
 ## Docs
 
-Put these in `solution/`:
-
-| File | Contents |
+| Path | Contents |
 | --- | --- |
 | `README.md` | How to run the backend and frontend. What the dashboard shows. |
-| `PLAN.md` | Written before coding: endpoints, response shapes, UI layout, risks. Update it as you go. |
-| `ai/` | If you used AI: the key plans, TDDs, or specs you gave it. Not every prompt. |
-| `AI_LOG.md` | If you used AI: tools, what you asked for, what you changed, and where it got things wrong. |
-| `DECISIONS.md` | Optional. Trade-offs, known bugs, next steps. |
+| `docs/` | Plans, TDDs, decisions, and any key inputs you gave an AI. |
+
+Good things to put in `docs/`:
+
+- **Plan or TDD**, written before coding: endpoints, response shapes, UI layout, risks. Update it as you go.
+- **Decisions**: trade-offs, known bugs, next steps.
+- **AI inputs**, if you used AI: the plans, specs, or prompts that shaped the work (not every prompt),
+  plus a short note on what you changed and where it got things wrong.
 
 **Commit in steps.** Plan first, then small commits. Don't squash.
 
@@ -69,7 +71,7 @@ Put these in `solution/`:
 
 | Area | Good looks like |
 | --- | --- |
-| AI use | Clear direction, critical review, honest log. You can explain every line. |
+| AI use | Clear direction, critical review, honest notes. You can explain every line. |
 | Planning | A plan you followed and updated. |
 | Backend | Clean endpoints, correct math, validation, error handling, caching. |
 | Frontend | Works. Handles loading, empty, and error states. |
@@ -85,11 +87,9 @@ Tests are optional. A few `pytest` tests on your calculations help.
    ```text
    solution/
    ├── README.md
-   ├── PLAN.md
-   ├── AI_LOG.md
-   ├── ai/
    ├── backend/
-   └── frontend/
+   ├── frontend/
+   └── docs/
    ```
 
 3. Push to your fork and send us the link. No pull request.
@@ -98,8 +98,8 @@ Tests are optional. A few `pytest` tests on your calculations help.
 
 - [ ] Backend and frontend run from your README
 - [ ] 2+ endpoints that compute something
-- [ ] `PLAN.md` is the first commit
-- [ ] If you used AI: key plans or specs in `ai/`, and `AI_LOG.md` explains how
+- [ ] Your plan is the first commit
+- [ ] `docs/` has your plan, decisions, and key AI inputs
 - [ ] No secrets, `node_modules/`, virtualenvs, or build output
 
 Questions? Ask. It's a good sign.
