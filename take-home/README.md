@@ -18,7 +18,7 @@ Build a **Python backend** that pulls data from a public API and computes someth
 ## The task
 
 1. **Pick an API** from the table below. Each links to a reference doc you can give your AI.
-2. **Pick a dashboard.** Each API doc has four ideas, or design your own.
+2. **Pick a dashboard.** Use one of our ideas or bring your own.
 3. **Write a plan or TDD** in `docs/`. Commit it before any code.
 4. **Build the backend (Python).** At least 2 endpoints that:
    - call the API
@@ -48,6 +48,20 @@ All free. No key, no sign-up.
 | [USGS Earthquakes](./apis/usgs-earthquakes.md) | Earthquakes worldwide | None published |
 | [Frankfurter](./apis/frankfurter.md) | Exchange rates since 1999 | None published |
 | [Jolpica F1](./apis/jolpica-f1.md) | Formula 1 results since 1950 | 500/hour |
+
+### Dashboard ideas
+
+| API | Ideas |
+| --- | --- |
+| Open-Meteo | Compare cities' weekly weather · Is this week unusually hot or cold? · Best time to go outside (weather + air quality) · A city's 30-year climate trend |
+| USGS | Earthquake activity this week · Quakes near a chosen place · Most active regions · Aftershocks after a major quake |
+| Frankfurter | Best and worst currencies over a period · What a travel budget is worth now vs last year · Moving averages and trends · Grid of every currency pair |
+| Jolpica F1 | Title race, round by round · Teammate head-to-heads · One driver's season report · Which teams dominated which years |
+
+Each API doc has details for its ideas: what to show, an example endpoint, and the backend work.
+
+**Have your own idea? Go for it.** Build any dashboard you like on one of these APIs, as long as the
+backend does real work. Explain the idea in your plan.
 
 Run [`./check-apis.sh`](./check-apis.sh) to check they're reachable from your network.
 
