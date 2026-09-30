@@ -245,3 +245,39 @@ def test_five_years_with_one_failing_is_not_enough_history(client, upstream):
     for part in ("highs", "lows"):
         assert body["week"][part]["verdict"] == "not_enough_history"
         assert body["week"][part]["days_with_history"] == 0
+
+
+# --- odd upstream shapes (review bug 3): 502, never a 500 ---------------------
+
+def test_empty_forecast_is_502_not_500(client, upstream):
+    upstream.forecast.respond(json={"timezone": "UTC", **daily([], [], [], [])})
+    r = client.get(ANOMALY)
+    assert r.status_code == 502
+    assert r.json()["error"]["code"] == "upstream_error"
+
+
+def test_null_forecast_column_degrades_to_not_enough_history(client, upstream):
+    payload = forecast_json()
+    payload["daily"]["temperature_2m_max"] = None
+    upstream.forecast.respond(json=payload)
+    r = client.get(ANOMALY)
+    assert r.status_code == 200
+    assert r.json()["week"]["highs"]["verdict"] == "not_enough_history"
+    assert r.json()["week"]["lows"]["verdict"] != "not_enough_history"
+
+
+def test_list_shaped_geocoding_reply_is_502(client, upstream):
+    upstream.geocode.respond(json=[{"name": "Denver"}])
+    r = client.get("/api/cities?q=Denver")
+    assert r.status_code == 502
+    assert r.json()["error"]["code"] == "upstream_error"
+
+
+def test_odd_geocoding_fields_are_cleaned_not_500(client, upstream):
+    odd = {**GEOCODE_DENVER["results"][0], "population": 729019.0, "id": "5419384"}
+    upstream.geocode.respond(json={"results": [odd, "not a place", {"name": "No coords"}]})
+    r = client.get("/api/cities?q=Denver")
+    assert r.status_code == 200
+    [place] = r.json()["results"]
+    assert place["population"] == 729019
+    assert place["id"] == 5419384

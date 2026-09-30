@@ -45,19 +45,36 @@ class WeatherQuery:
 
 # --- helpers -----------------------------------------------------------------
 
-def clean_place(raw: dict) -> dict | None:
-    if raw.get("latitude") is None or raw.get("longitude") is None or not raw.get("name"):
+def _as_int(value) -> int | None:
+    """Upstream sometimes sends numbers as floats or strings; keep only whole numbers."""
+    try:
+        f = float(value)
+    except (TypeError, ValueError):
         return None
+    return int(f) if f.is_integer() else None
+
+
+def _as_text(value) -> str | None:
+    return value if isinstance(value, str) and value else None
+
+
+def clean_place(raw: dict) -> dict | None:
+    try:
+        lat, lon = float(raw["latitude"]), float(raw["longitude"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    if not _as_text(raw.get("name")):
+        return None
+    name, admin1, country = (_as_text(raw.get(k)) for k in ("name", "admin1", "country"))
     parts = []
-    for part in (raw.get("name"), raw.get("admin1"), raw.get("country")):
+    for part in (name, admin1, country):
         if part and part not in parts:
             parts.append(part)
     return {
-        "id": raw.get("id"), "label": ", ".join(parts), "name": raw["name"],
-        "admin1": raw.get("admin1"), "country": raw.get("country"),
-        "country_code": raw.get("country_code"), "latitude": raw["latitude"],
-        "longitude": raw["longitude"], "timezone": raw.get("timezone"),
-        "population": raw.get("population"),
+        "id": _as_int(raw.get("id")), "label": ", ".join(parts), "name": name,
+        "admin1": admin1, "country": country,
+        "country_code": _as_text(raw.get("country_code")), "latitude": lat, "longitude": lon,
+        "timezone": _as_text(raw.get("timezone")), "population": _as_int(raw.get("population")),
     }
 
 

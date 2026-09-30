@@ -39,8 +39,10 @@ def parse_daily(payload: dict) -> Daily:
     times = daily["time"]
     columns = {}
     for api_name, our_name in DAILY_FIELDS.items():
-        values = daily.get(api_name, [None] * len(times))
-        if len(values) != len(times):
+        values = daily.get(api_name)
+        if values is None:  # missing, or an explicit null: no data for this variable
+            values = [None] * len(times)
+        if not isinstance(values, list) or len(values) != len(times):
             raise UpstreamError("Weather service sent data in an unexpected shape.")
         columns[our_name] = values
     return {
@@ -110,7 +112,9 @@ class OpenMeteo:
                     raise UpstreamError("The weather service sent a response we could not read.")
                 await asyncio.sleep(config.RETRY_DELAY_S)
                 continue
-            if isinstance(payload, dict) and payload.get("error"):
+            if not isinstance(payload, dict):
+                raise UpstreamError("Weather service sent data in an unexpected shape.")
+            if payload.get("error"):
                 log.warning("Open-Meteo %s error body: %s", url, payload.get("reason"))
                 raise UpstreamError("The weather service rejected the request.")
             return payload
@@ -123,7 +127,10 @@ class OpenMeteo:
         async def fetch():
             payload = await self._get_json(config.GEOCODING_URL, params, meter)
             # no `results` key at all when nothing matches (PLAN.md gotcha 3)
-            return payload.get("results", [])
+            results = payload.get("results") or []
+            if not isinstance(results, list):
+                raise UpstreamError("Weather service sent data in an unexpected shape.")
+            return [r for r in results if isinstance(r, dict)]
 
         return await self.geocode_cache.get((name.lower(), count), fetch)
 
@@ -137,7 +144,10 @@ class OpenMeteo:
 
         async def fetch():
             payload = await self._get_json(config.FORECAST_URL, params, meter)
-            return {"timezone": payload.get("timezone"), "days": parse_daily(payload)}
+            days = parse_daily(payload)
+            if not days:
+                raise UpstreamError("The weather service returned no forecast days.")
+            return {"timezone": payload.get("timezone"), "days": days}
 
         return await self.forecast_cache.get((lat, lon), fetch)
 
