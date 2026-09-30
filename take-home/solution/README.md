@@ -33,14 +33,21 @@ npm run dev
 
 Open <http://localhost:5173>. Pick a city, or click one of the example cities.
 
-**Tests** (from `backend/`, with the virtual env active):
+**Tests.** Backend (from `backend/`, with the virtual env active):
 
 ```bash
 python -m pytest
 ```
 
-There are 72 tests. They cover the math, dates, units, parsing, caching, the call budget, and
-every route, with Open-Meteo mocked, so they need no network.
+Frontend (from `frontend/`):
+
+```bash
+npm test
+```
+
+There are 84 backend tests. They cover the math, dates, units, parsing, odd upstream replies,
+caching, the call budget, and every route, with Open-Meteo mocked, so they need no network.
+There are 2 frontend tests, for the city search's keyboard and debounce behavior.
 
 ## What the dashboard shows
 
@@ -73,7 +80,8 @@ days, in each past year. At 10 years that is 70 values per day.
   - Outside the 2nd to 98th percentile is **very unusual**.
 - **Week verdict:** days (highs) and nights (lows) are judged separately and never combined.
   For each, 0 to 2 flagged days is **normal**, 3 to 4 **somewhat unusual**, and 5 to 7
-  **very unusual**.
+  **very unusual**. If fewer than 5 days have enough past data to judge, it is
+  **not enough history**.
 - **Rain:** compared as weekly totals, because daily rain is mostly zeros.
 
 **How the rule was picked:** we wanted "unusual" to be rare, so the rule was backtested on 357
@@ -102,6 +110,27 @@ that it runs from a local cache in 2 seconds.
   average, up to about 4°F on single days) adds noise, which means more flags. We don't know
   which effect wins.
 - **The cache is in memory,** so it is lost on restart.
+- **Too little history gives no verdict.** If fewer than 5 of the 7 days have enough past data
+  (for example, 5 years with one year failing to load), the banner says "not enough history"
+  instead of guessing.
+
+## Known issues
+
+Small problems found in review and left as they are. None of them change a verdict in normal use.
+
+- **A week with Feb 29 counts Feb 28 twice** in past years that have no Feb 29. This affects the
+  same-week averages and rain totals slightly. It next matters in 2028.
+- **A dot right at the edge of the shaded band can look wrong.** The band edges are smoothed
+  values, while a day is flagged by its rank. So a dot can sit just outside the band and still be
+  "normal", or the other way round. The table's level is the one that counts.
+- **"Upstream calls" can say 0 on a first load.** When both weather requests start together, they
+  share one fetch, and only the request that started it reports the calls. The other says 0.
+- **The city search is only partly screen-reader friendly.** Arrow keys move the highlight, but
+  the highlighted option isn't announced to screen readers.
+- **A small layout slip on phones.** In the same-week chart legend, the blue swatch can wrap onto a
+  different line from its "This week (forecast)" label.
+- **A crash (500) response has no CORS header.** This doesn't matter through the dev proxy the
+  README uses; it would only matter if the frontend were served from a different origin.
 
 ## API
 

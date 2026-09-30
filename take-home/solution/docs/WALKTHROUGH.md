@@ -1,6 +1,7 @@
 # Walkthrough: questions and answers
 
-Written 30 Sep 2026 and updated after the verdict-rule change, so it matches the final code.
+Written 30 Sep 2026, then updated after the verdict-rule change and the code-review fixes, so it
+matches the final code.
 Paths are relative to `take-home/solution/` unless noted.
 
 ## Repo and submission
@@ -57,7 +58,15 @@ doesn't show rename history, so I can't fully prove it. The fork would be `Bhagy
 | 14 | `5499d71` | Frontend: Days and Nights banner, p5 to p95 chart band, footer fix, new screenshots |
 | 15 | `43d665f` | Docs: backtest results, corrected offset numbers, every AI mistake |
 | 16 | `b178679` | README: Node version, Windows line, new rule, Limitations section |
-| 17 | (this one) | This walkthrough, updated to the final code |
+| 17 | `3b290de` | This walkthrough, updated to the final code |
+| 18 | `fedd2ea` | README screenshots retaken in light mode |
+| 19 | `6188be7` | Fix: "not enough history" instead of "normal" for thin baselines (review bug 1) |
+| 20 | `e953e66` | Fix: odd upstream replies give 502 or degrade, never 500 (review bug 3) |
+| 21 | `8f1daeb` | Test: replace an assertion that could never fail (review bug 9) |
+| 22 | `648ba24` | Frontend test setup: Vitest, jsdom, Testing Library |
+| 23 | `d8c28f4` | Fix: Enter in the city search no longer picks a stale result (review bug 2) |
+| 24 | `5719d6f` | Fix: picking a city no longer fires a wasted search (review bug 7) |
+| 25 | (this one) | README Known issues, review findings in AI_NOTES, this walkthrough, new screenshots |
 
 **6. What does `.gitignore` ignore, and is anything large or secret tracked?**
 `solution/.gitignore` ignores `__pycache__/`, `*.pyc`, `.venv/`, `venv/`, `.pytest_cache/`,
@@ -106,21 +115,23 @@ no secrets, only a sentence in `AI_NOTES.md` saying there are none.
 - `backend/app/cache.py`: `AsyncTTLCache` (cache plus in-flight dedup) and `CallBudget`.
 - `backend/app/errors.py`: the error classes, each with its HTTP status and code.
 - `backend/app/models.py`: the response shapes, which also drive the docs page at `/docs`.
-- `backend/tests/`: 72 tests. `pytest.ini` configures them, and `requirements.txt` pins the packages.
+- `backend/tests/`: 84 tests. `pytest.ini` configures them, and `requirements.txt` pins the packages.
 - `scripts/backtest_verdict.py`: scores verdict rules on real past weeks, using `anomaly.py`.
 
 **9. Each frontend file or component, one line each** (`frontend/`).
 
 - `index.html` and `src/main.jsx`: the page shell and the React entry point.
-- `vite.config.js`: dev server on port 5173, with `/api` proxied to port 8000.
+- `vite.config.js`: dev server on port 5173, with `/api` proxied to port 8000, and the test setup (jsdom).
 - `src/App.jsx`: the layout, the four controls' state, example cities, the URL link, and `Dashboard`.
 - `src/api.js`: `getJson`, which fetches and turns our error shape into an `ApiError`.
 - `src/useApi.js`: tracks loading, success, and error; cancels stale requests; offers `retry`.
 - `src/format.js`: date labels, number formats, ordinals, verdict words, and `worstVerdict`.
 - `src/styles.css`: all styling, with light and dark colors.
 - `components/CitySearch.jsx`: the search box with a debounced dropdown and keyboard support.
+- `components/CitySearch.test.jsx`: 2 tests for the search's keyboard and debounce behavior.
 - `components/Controls.jsx`: the years dropdown and the two-button toggles (units, highs/lows).
-- `components/VerdictBanner.jsx`: the "Days: ... Nights: ..." verdicts, counts, averages, and warnings.
+- `components/VerdictBanner.jsx`: the "Days: ... Nights: ..." verdicts, counts, averages, warnings,
+  and a clear "not enough history" message.
 - `components/WeekChart.jsx`: the forecast line over the shaded 5th to 95th percentile band.
 - `components/SameWeekChart.jsx`: a bar per year, this week highlighted, and the rank sentence.
 - `components/RainCard.jsx`: the weekly rain total against past years.
@@ -208,9 +219,11 @@ In `anomaly.classify` and `compare`:
 
 **22. How is the week verdict decided? Highs, lows, or both?**
 Highs and lows each get their own verdict, and the two are never combined. `anomaly.verdict_for`
-counts flagged days (unusual or very unusual) for one variable: 0 to 2 is "normal", 3 to 4
-"somewhat unusual", 5 to 7 "very unusual". `summarize_week` returns both as `highs` and `lows`.
-The banner shows them as "Days: ... Nights: ...", and its border color uses the worse of the two.
+first checks that at least 5 of 7 days can be judged (not "unknown"). If not, the verdict is
+"not enough history", never "normal". Otherwise it counts flagged days (unusual or very unusual):
+0 to 2 is "normal", 3 to 4 "somewhat unusual", 5 to 7 "very unusual". `summarize_week` returns
+both as `highs` and `lows`. The banner shows "Days: ... Nights: ...", and its border color uses
+the worse real verdict.
 
 **23. How is rain handled, and why differently?**
 `anomaly.rain_summary` compares the week's total rain with the totals for the same 7 dates in each
@@ -227,8 +240,10 @@ All math runs in °C and mm. `units.py` converts on the way out, called from `ro
 This is tested in `test_units.py`.
 
 **25. How are null values handled?**
-`parse_daily` keeps them as `None`. `baseline_samples` skips them, `compare` returns "unknown" for
-a missing forecast, and `_mean` ignores them. A rain total is dropped if any day is missing, and
+`parse_daily` keeps them as `None`, and treats a whole column sent as `null` as missing data. A
+column that isn't a list is an `upstream_error`. `baseline_samples` skips nulls, `compare` returns
+"unknown" for a missing forecast, and `_mean` ignores them. If fewer than 5 days can be judged,
+the week verdict is "not enough history". A rain total is dropped if any day is missing, and
 a past week needs 6 of 7 days to be ranked. The frontend shows "n/a" or "No data".
 
 ## Same-week endpoint
@@ -279,7 +294,7 @@ fetch, and a failed fetch isn't cached).
 | 404 | `city_not_found` | `city=` has no geocoding match | `routes.resolve_location` |
 | 503 | `upstream_rate_limited` | Open-Meteo sent 429, or our budget is used up. Sends `Retry-After`. | `openmeteo._get_json`, `cache.CallBudget` |
 | 504 | `upstream_timeout` | Open-Meteo timed out twice | `openmeteo._get_json` |
-| 502 | `upstream_error` | 5xx, empty body, bad JSON, or an unexpected 400, after the retry | `openmeteo._get_json`, `parse_daily` |
+| 502 | `upstream_error` | 5xx, empty body, bad JSON, an unexpected 400, a reply that isn't a JSON object, a column that isn't a list, or a forecast with no days | `openmeteo._get_json`, `parse_daily`, `OpenMeteo.forecast` |
 | 502 | `insufficient_history` | Some past years loaded, but fewer than max(3, 70% of years) | `routes.load_week` |
 | 404 | `not_found` | Unknown route | `main.handle_http_error` |
 | other | `http_error` | Any other framework HTTP error, such as a wrong method | `main.handle_http_error` |
@@ -314,7 +329,8 @@ including recovering after 60 s.
 
 **35. What does each chart and card show, and how is "unusual" shown besides color?**
 - **Verdict banner:** "Days: ... Nights: ...", then for each the count of flagged days and the
-  average difference, plus the baseline years.
+  average difference, plus the baseline years. With too little data, it says "not enough history"
+  and how many days had enough.
 - **Week chart:** the forecast line over the shaded 5th to 95th percentile band, with the
   average as a dashed line.
 - **Same-week chart:** a bar per year, with this week in blue and a rank sentence.
@@ -337,20 +353,22 @@ rarely look inside the band but be flagged, or the other way round.
 ## Tests
 
 **37. How many tests, grouped by what they cover?**
-72 in total, all passing:
+84 backend tests and 2 frontend tests, all passing:
 
 | File | Tests | What they cover |
 |---|---|---|
-| `test_anomaly.py` | 29 | Percentile rank, level boundaries (2, 5, 95, 98), p5/p95, baseline samples, compare, verdict thresholds, separate highs and lows, rain, same-week rank |
-| `test_routes.py` | 24 | Happy paths including the `highs`/`lows` shape, cache reuse, units, city lookup, 7 bad-input cases, 404, 429, timeout, empty body, 400, failed years, unknown route |
-| `test_parse.py` | 6 | Parallel arrays to rows, missing fields, bad shapes |
+| `test_anomaly.py` | 34 | Percentile rank, level boundaries (2, 5, 95, 98), p5/p95, baseline samples, compare, verdict thresholds, separate highs and lows, rain, same-week rank |
+| `test_routes.py` | 29 | Happy paths with exact `highs`/`lows` results, cache reuse, units, city lookup, 7 bad-input cases, 404, 429, timeout, empty body, 400, failed years, 5 years with 1 failing, odd upstream shapes, unknown route |
+| `test_parse.py` | 8 | Parallel arrays to rows, missing fields, null and non-list columns, bad shapes |
 | `test_dates.py` | 5 | Year shift, Feb 29, window length, crossing Jan 1 |
 | `test_units.py` | 5 | °F values vs differences, metric, rain, `None` |
 | `test_cache.py` | 3 | Call budget limit and recovery, in-flight dedup, failed fetch not cached |
+| `frontend/src/components/CitySearch.test.jsx` | 2 | Enter can't pick a stale hidden result; picking doesn't fire a wasted search |
 
 **38. Do any tests call the real Open-Meteo API?**
 No. `test_routes.py` uses `respx`, which answers every Open-Meteo request with made-up data and
-raises an error on anything it doesn't expect. The other test files never touch the network.
+raises an error on anything it doesn't expect. The other backend tests never touch the network.
+The frontend tests replace `fetch` with a stand-in for our backend.
 The backtest script does call the real API, but it isn't part of the test suite.
 
 **39. What important behavior is not tested?**
@@ -359,7 +377,8 @@ The backtest script does call the real API, but it isn't part of the test suite.
 - Network errors other than timeouts, and bad JSON.
 - Whether the mocks still match the real API.
 - The backtest script itself, although it cross-checks the shipped code against the (a5) rule.
-- The whole frontend, which was only checked by hand.
+- Most of the frontend: only the city search has tests. The rest was checked by hand.
+- The known issues listed in the README (Feb 29, band edges, and so on).
 
 ## Honest check
 
@@ -384,6 +403,8 @@ Also different, and not in that list:
   sources differ by up to about 2°F on average and about 4°F on single days, and forecast
   uncertainty is ignored.
 - **"Very unusual" rests on very few samples,** the 1 or 2 most extreme of 70.
+- **Six small known issues** are listed in the README, such as Feb 29 double-counting and band
+  edges that can disagree with a flag.
 
 **42. What would likely break on a reviewer's machine?**
 - **Networks:** an office network or VPN can hit Open-Meteo's per-IP limit, or block it.
@@ -414,7 +435,9 @@ and 87% and 1%. Some of those flagged weeks were genuinely unusual, so they aren
 alarms. Full table: `DECISIONS.md`, "Verdict backtest".
 
 **44. What mistakes did I make, how were they caught, and are they in `AI_NOTES.md`?**
-They are all in `AI_NOTES.md` now, under "Mistakes the AI made, and how they were caught":
+The build mistakes are in `AI_NOTES.md` under "Mistakes the AI made, and how they were caught".
+The later code review's 11 findings are under "Review findings" (5 fixed, 6 listed as known issues).
+The build mistakes were:
 - I started building before you confirmed the decisions.
 - The planning script crashed on an empty reply.
 - The first frontend build check never ran.

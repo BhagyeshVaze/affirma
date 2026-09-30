@@ -12,6 +12,7 @@
 | Rain | Weekly totals only | Daily rain is mostly zeros, so daily percentiles would be meaningless |
 | Units | Fetch metric, convert on the way out | Units stay out of cache keys. Deltas scale by 1.8 with no +32, which is tested. |
 | Failed past years | Drop the year and warn, unless fewer than max(3, 70%) remain | One bad upstream call shouldn't blank the page, but a thin baseline shouldn't pass silently |
+| Thin baseline | If fewer than 5 of 7 days have at least 30 samples, the verdict is "not enough history" | Added after review. At 5 years with 1 year failing, every day had 28 samples and the old code called the week "normal". |
 | Upstream 429 | Return 503 with `Retry-After` | It is the upstream's limit, not the caller's. A 429 on any year fails the whole request, since retrying makes it worse. |
 | Location input | Search and pick, then send lat and lon (`city=` also works) | Names are ambiguous: "Paris" returns France first |
 | Cache | In memory, one process | No database needed. Run uvicorn with a single worker, or each worker gets its own cache. |

@@ -45,6 +45,17 @@ data was used.
    The AI tested 10 rules, recommended one, and waited for approval before changing code. The
    results are in [DECISIONS.md](DECISIONS.md), under "Verdict backtest".
 
+5. Code review. I asked the AI to review the finished work as an interviewer would, and to check
+   every step. It ran its own checks and had a separate agent read every file for bugs:
+   - a fresh clone and cold install
+   - 18 edge-case requests
+   - a 10-request load test
+   - the mobile layout
+   - a privacy scan
+
+   The review findings, and what happened to each, are listed below under "Review findings".
+   Each fix came with a test that failed before the fix and passes after.
+
 ## How the AI's output was checked
 
 The docs warn that "AI invents parameters", so every upstream assumption was tested with a real
@@ -98,3 +109,26 @@ in advance.
 | It warned me that my git email and GitHub login were two different accounts. They are one account (`BhagyeshVaze`); `gh` still shows an old username. | Checking `gh api user` | Yes |
 | The README said "Node 20+", but Vite 7 needs Node 20.19+ or 22.12+ | Checking Vite's requirements | Yes |
 | PLAN.md said the chart's dots would differ in shape; they differ in fill and size only | Writing the walkthrough | Noted, not changed |
+
+## Review findings
+
+From the AI's own review of the finished work (see "Key prompts", step 5).
+
+| # | Severity | Finding | Outcome |
+|---|---|---|---|
+| 1 | Medium | A thin baseline was reported as "normal". At 5 years with 1 year failing, every day had 28 samples (under 30), so every day was unknown, yet the verdict said "normal". | Fixed: "not enough history" when fewer than 5 of 7 days can be judged. 6 tests. |
+| 2 | Medium | In the city search, pressing Enter during the 300 ms debounce picked a stale, hidden result ("Portland, Maine" picked Portland, Oregon). | Fixed: the keyboard only acts on the visible list. Frontend test. |
+| 3 | Low | Odd upstream replies (an empty forecast, a null column, a list-shaped reply, float ids) crashed with a 500. | Fixed: 502, or treated as missing data. 6 tests. |
+| 4 | Low | A week with Feb 29 counts Feb 28 twice in past years. | Known issue, in the README |
+| 5 | Low | A dot at the very edge of the chart band can disagree with its flag. | Known issue, in the README |
+| 6 | Low | "Upstream calls" can say 0 on a first load when two requests share one fetch. | Known issue, in the README |
+| 7 | Low | Picking a city fired a wasted search for its full label. | Fixed. Frontend test. |
+| 8 | Low | The city search's highlighted option isn't announced to screen readers. | Known issue, in the README |
+| 9 | Low | One test assertion accepted every possible value, so it could never fail. | Fixed. A deliberately planted bug passed the old assertion and fails the new one. |
+| 10 | Low | On phones, a chart legend swatch wraps away from its label. | Known issue, in the README |
+| 11 | Low | A 500 response has no CORS header (no effect through the dev proxy). | Known issue, in the README |
+
+Also from the review:
+- The first build took 14 minutes of commit time, so I should be ready to explain every part
+  of the code myself.
+- The walkthrough file shows a local path containing my username (left as is for now).
