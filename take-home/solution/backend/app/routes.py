@@ -12,7 +12,7 @@ from .errors import ApiError, CityNotFound, InsufficientHistory, InvalidInput, U
 from .models import AnomalyResponse, CitySearchResponse, ErrorResponse, SameWeekResponse
 from .openmeteo import Meter, OpenMeteo
 
-# Proceed without a failed past year only if enough years are left (PLAN.md section 5)
+# A failed past year is dropped with a warning, unless too few years would be left
 MIN_YEARS = 3
 MIN_YEARS_SHARE = 0.7
 
@@ -112,7 +112,7 @@ async def load_week(om: OpenMeteo, loc: dict, years: int, meter: Meter) -> dict:
     lat, lon = loc["latitude"], loc["longitude"]
     forecast = await om.forecast(lat, lon, meter)
     days = forecast["days"]
-    week = sorted(days)  # the city's local today plus 6 (PLAN.md gotcha 9)
+    week = sorted(days)  # the city's local today plus 6, never the server's clock
 
     offsets = list(range(1, years + 1))
     results = await asyncio.gather(
@@ -124,13 +124,13 @@ async def load_week(om: OpenMeteo, loc: dict, years: int, meter: Meter) -> dict:
     history, used, warnings, failures = {}, [], [], []
     for y, result in zip(offsets, results):
         if isinstance(result, UpstreamRateLimited):
-            raise result
+            raise result  # the other years would hit the same limit
         if isinstance(result, ApiError):
             failures.append(result)
             warnings.append(f"History for {week[0].year - y} could not be loaded and was left out.")
             continue
         if isinstance(result, BaseException):
-            raise result
+            raise result  # a bug, not an upstream failure: let it surface
         history.update(result)
         used.append(y)
 

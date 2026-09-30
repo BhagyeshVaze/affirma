@@ -34,7 +34,7 @@ def test_bad_shapes_raise_upstream_error(payload):
 
 
 def test_explicit_null_column_is_treated_as_missing():
-    """Review bug 3: `"temperature_2m_max": null` used to crash with TypeError (a 500)."""
+    """`"temperature_2m_max": null` is missing data, not a crash."""
     payload = {"daily": {"time": ["2026-09-30"], "temperature_2m_max": None,
                          "temperature_2m_min": [10.0], "precipitation_sum": [0.0]}}
     assert parse_daily(payload)[date(2026, 9, 30)] == {"high": None, "low": 10.0, "rain": 0.0}
@@ -47,7 +47,7 @@ def test_non_list_column_is_upstream_error():
         parse_daily(payload)
 
 
-# --- every value is checked (second review, finding 1) --------------------------
+# --- every value is checked ---------------------------------------------------
 
 @pytest.mark.parametrize("time, value", [
     (None, 20.0), ("30 Sep", 20.0), ("2026-02-30", 20.0),   # bad dates

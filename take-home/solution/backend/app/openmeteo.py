@@ -82,11 +82,8 @@ class OpenMeteo:
         self.archive_cache = AsyncTTLCache(config.ARCHIVE_TTL_S, config.CACHE_MAX_ENTRIES)
 
     async def _get_json(self, url: str, params: dict, meter: Meter) -> dict:
-        """GET with one retry on timeouts, network errors, 5xx, and empty bodies.
-
-        400 and 429 are never retried. Upstream error text is logged, not shown to users,
-        because some of it is wrong (PLAN.md gotcha 5).
-        """
+        """GET JSON. Retries once on timeouts, network errors, 5xx, and empty bodies; never on
+        400 or 429. Upstream error text is logged, not shown: some of it is wrong."""
         for attempt in (1, 2):
             last = attempt == 2
             self.budget.take()
@@ -111,7 +108,7 @@ class OpenMeteo:
                     f"The weather service is busy. Try again in {wait} s.", retry_after_s=wait
                 )
             if resp.status_code >= 500 or not resp.content.strip():
-                # an empty 200 body happened once while planning (PLAN.md gotcha 6)
+                # Open-Meteo has sent empty 200s; a retry fixes them
                 if last:
                     raise UpstreamError("The weather service sent an empty or failed response.")
                 await asyncio.sleep(config.RETRY_DELAY_S)
@@ -140,7 +137,7 @@ class OpenMeteo:
 
         async def fetch():
             payload = await self._get_json(config.GEOCODING_URL, params, meter)
-            # no `results` key at all when nothing matches (PLAN.md gotcha 3)
+            # no `results` key at all when nothing matches
             results = payload.get("results") or []
             if not isinstance(results, list):
                 raise UpstreamError("Weather service sent data in an unexpected shape.")

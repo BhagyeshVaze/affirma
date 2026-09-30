@@ -4,8 +4,8 @@ import {
 import { dayLabel, num, ordinal, signed } from '../format.js'
 import LevelBadge from './LevelBadge.jsx'
 
-// Forecast dots: hollow when normal; filled red (warm) or blue (cool) when unusual,
-// bigger with a ring when very unusual. The table and tooltip repeat the level in words.
+// Dots: hollow when normal, filled red (warm) or blue (cool) when unusual, bigger when very
+// unusual. The table and tooltip say the level in words, so color is never the only signal.
 function LevelDot({ cx, cy, payload }) {
   if (cx == null || cy == null || payload.forecast == null) return null
   if (payload.level === 'normal' || payload.level === 'unknown') {

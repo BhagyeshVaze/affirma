@@ -1,4 +1,4 @@
-"""Response shapes (PLAN.md section 4). They also drive the OpenAPI docs at /docs."""
+"""Response shapes. They also drive the API docs at /docs."""
 
 from datetime import date, datetime
 from typing import Literal

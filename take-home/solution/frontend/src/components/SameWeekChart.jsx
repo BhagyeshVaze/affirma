@@ -28,7 +28,7 @@ export default function SameWeekChart({ request }) {
   const data = request.data
   const unit = data.units.temperature
   const rows = data.years.filter((r) => r.avg_high != null)
-  // the same past average the backend compared against, so the line matches the sentence
+  // the backend's past average, so the line matches the sentence
   const { rank_warmest: rank, out_of: outOf, vs_past_mean: diff, past_avg_high: pastMean } = data.this_week
 
   return (

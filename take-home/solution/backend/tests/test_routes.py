@@ -236,8 +236,8 @@ def test_unknown_route_uses_our_error_shape(client):
 
 
 def test_five_years_with_one_failing_is_not_enough_history(client, upstream):
-    """Review bug 1: 4 of 5 years pass the history check, but 4 x 7 = 28 samples per day is
-    under the 30 minimum, so every day is unknown. That must not be reported as "normal"."""
+    """4 of 5 years load, but 4 x 7 = 28 samples a day is under 30: every day is unknown,
+    so the verdict must not be "normal"."""
     def flaky(request):
         if request.url.params["start_date"].startswith("2021"):
             return httpx.Response(500)
@@ -252,7 +252,7 @@ def test_five_years_with_one_failing_is_not_enough_history(client, upstream):
         assert body["week"][part]["days_judged"] == 0
 
 
-# --- odd upstream shapes (review bug 3): 502, never a 500 ---------------------
+# --- odd upstream shapes: 502, or treated as missing ---------------------------
 
 def test_empty_forecast_is_502_not_500(client, upstream):
     upstream.forecast.respond(json={"timezone": "UTC", **daily([], [], [], [])})
@@ -289,7 +289,7 @@ def test_odd_geocoding_fields_are_cleaned_not_500(client, upstream):
     assert place["id"] == 5419384
 
 
-# --- more odd upstream shapes (second review, findings 1 and 8) ---------------
+# --- odd upstream values and coordinates --------------------------------------
 
 def test_text_temperature_in_forecast_is_502(client, upstream):
     payload = forecast_json()

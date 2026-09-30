@@ -19,7 +19,7 @@ function data(highs, lows, days = 7) {
   }
 }
 
-it('blames a missing forecast, not history, when forecast values are missing (finding 3)', () => {
+it('blames a missing forecast, not history, when forecast values are missing', () => {
   const highs = verdict({ verdict: 'not_enough_history', days_judged: 0, days_without_forecast: 7 })
   render(<VerdictBanner data={data(highs, verdict())} />)
   expect(screen.getByText(/forecast is missing values for 7 of 7 days/i)).toBeTruthy()
@@ -33,7 +33,7 @@ it('suggests more years when the history is what is thin', () => {
   expect(screen.getAllByText(/try more years/i)).toHaveLength(2)
 })
 
-it('counts against the real number of days, not a fixed 7 (finding 9)', () => {
+it('counts against the real number of days, not a fixed 7', () => {
   render(<VerdictBanner data={data(verdict({ unusual_days: 1 }), verdict(), 5)} />)
   expect(screen.getByText(/1 of 5 outside the normal range/i)).toBeTruthy()
 })

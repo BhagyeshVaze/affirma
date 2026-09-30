@@ -2,11 +2,10 @@ from datetime import date, timedelta
 
 
 def shift_years(d: date, years_back: int) -> date:
-    """The same calendar date `years_back` years earlier.
+    """The same calendar date `years_back` years earlier; Feb 29 becomes Feb 28.
 
-    Feb 29 becomes Feb 28 in non-leap years. We must do this ourselves: the archive API
-    silently turns 2025-02-29 into 2025-03-01 instead of failing (PLAN.md gotcha 1).
-    Shifting by an offset, not setting a year, also keeps weeks that cross Jan 1 intact.
+    Handled here because the archive silently turns 2025-02-29 into 2025-03-01. Shifting by
+    an offset, not setting a year, keeps weeks that cross Jan 1 intact.
     """
     try:
         return d.replace(year=d.year - years_back)

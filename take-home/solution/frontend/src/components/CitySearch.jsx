@@ -8,8 +8,7 @@ export default function CitySearch({ onPick }) {
   const [active, setActive] = useState(0)
   const pickedLabel = useRef(null)
 
-  // debounce: search 300 ms after typing stops, and only with 2+ characters.
-  // After a pick, the box shows the place's label; that is not something to search for.
+  // Search 300 ms after typing stops, with 2+ characters. Skip the label a pick puts in the box.
   useEffect(() => {
     if (text === pickedLabel.current) return
     const id = setTimeout(() => setQuery(text.trim()), 300)
@@ -17,8 +16,7 @@ export default function CitySearch({ onPick }) {
   }, [text])
 
   const search = useApi('/api/cities', query.length >= 2 ? { q: query, count: 6 } : null)
-  // only results for the current query; on the first render after the query changes,
-  // search.data still holds the previous query's results
+  // Only results for the current query (right after it changes, data is still the old query's).
   const results = search.data?.query === query ? search.data.results : []
 
   useEffect(() => setActive(0), [search.data])
@@ -30,8 +28,7 @@ export default function CitySearch({ onPick }) {
     setOpen(false)
   }
 
-  // The list only shows results for what is typed now. While the next search is pending
-  // (debounce), the old results are hidden, and the keyboard must not act on them.
+  // The list shows only results for what's typed now, and the keyboard acts only on that list.
   const showList = open && query.length >= 2 && text.trim() === query
 
   function onKeyDown(e) {
@@ -63,7 +60,7 @@ export default function CitySearch({ onPick }) {
         autoComplete="off"
         value={text}
         onChange={(e) => {
-          pickedLabel.current = null // the user is typing now; search whatever they type
+          pickedLabel.current = null // the user is typing: forget the last pick
           setText(e.target.value)
           setOpen(true)
         }}

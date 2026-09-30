@@ -1,7 +1,7 @@
-"""Anomaly math (PLAN.md section 4). Pure functions, no I/O, metric in and metric out.
+"""Anomaly math. Pure functions: metric in, metric out, no I/O.
 
-`history` everywhere is {date: {"high", "low", "rain"}} merged from the archive windows.
-`years_back` is the list of past-year offsets that loaded (1 = last year).
+`history` is {date: {"high", "low", "rain"}}, merged from the archive windows.
+`years_back` lists the past-year offsets that loaded (1 = last year).
 """
 
 import bisect
@@ -10,17 +10,15 @@ from datetime import date, timedelta
 
 from .dates import shift_years
 
-# Decisions from PLAN.md section 2, in one place
-# The day band and week thresholds were picked by backtest (scripts/backtest_verdict.py,
-# DECISIONS.md): about 83% of ordinary weeks come out "normal" and about 3% "very unusual".
-WINDOW_DAYS = 3            # plus or minus days around each date
-MIN_SAMPLES = 30           # fewer baseline values than this -> level "unknown"
-UNUSUAL_PCT = 5            # outside the 5th to 95th percentile
-VERY_UNUSUAL_PCT = 2       # outside the 2nd to 98th percentile
-SOMEWHAT_UNUSUAL_DAYS = 3  # week verdict: 0-2 flagged days normal, 3-4 somewhat, 5-7 very
+# The rule, in one place. Picked by backtest: see DECISIONS.md and scripts/backtest_verdict.py.
+WINDOW_DAYS = 3            # baseline: the same date, plus or minus 3 days, in each past year
+MIN_SAMPLES = 30           # fewer baseline values -> the day is "unknown"
+UNUSUAL_PCT = 5            # unusual: outside the 5th to 95th percentile lines
+VERY_UNUSUAL_PCT = 2       # very unusual: outside the 2nd to 98th
+SOMEWHAT_UNUSUAL_DAYS = 3  # week: 0-2 flagged days normal, 3-4 somewhat, 5+ very
 VERY_UNUSUAL_DAYS = 5
-MIN_DAYS_FOR_RANK = 6      # a past week needs 6 of 7 days of data to be ranked
-MIN_DAYS_FOR_VERDICT = 5   # fewer judgeable days than this -> "not_enough_history"
+MIN_DAYS_FOR_RANK = 6      # a past week needs 6 of 7 days to be ranked
+MIN_DAYS_FOR_VERDICT = 5   # fewer judgeable days -> "not_enough_history"
 
 TEMP_VARS = ("high", "low")
 FLAGGED = ("unusual", "very_unusual")
@@ -41,10 +39,9 @@ def baseline_samples(
 
 
 def pct_rank(value: float, samples: list[float]) -> float:
-    """Where `value` sits on the same scale as statistics.quantiles(method="inclusive"):
-    0 at the smallest sample, 100 at the largest, straight lines in between. Using one scale
-    for the band, the flag, and the shown percentile keeps the three in agreement.
-    A value equal to several samples gets the middle of their positions.
+    """Position of `value` among `samples`, 0 to 100, on the same interpolated scale as
+    statistics.quantiles(method="inclusive"), so it always agrees with the band and the flag.
+    Ties get the middle of their positions.
     """
     s = sorted(samples)
     n = len(s)
@@ -63,7 +60,7 @@ def pct_rank(value: float, samples: list[float]) -> float:
 
 
 def classify(value: float, cuts: dict) -> str:
-    """Level from where the value sits against the percentile lines (the chart's band)."""
+    """Level by where the value sits against the percentile lines. On a line counts as inside."""
     if value < cuts["p2"] or value > cuts["p98"]:
         return "very_unusual"
     if value < cuts["p5"] or value > cuts["p95"]:
@@ -72,7 +69,7 @@ def classify(value: float, cuts: dict) -> str:
 
 
 def percentile_lines(samples: list[float]) -> dict:
-    """The flag lines: p5/p95 (unusual) and p2/p98 (very unusual), from the constants above."""
+    """The flag lines. p5 and p95 are also the edges of the chart's band."""
     q = statistics.quantiles(samples, n=100, method="inclusive")  # q[k - 1] is the kth percentile
     return {
         "p2": q[VERY_UNUSUAL_PCT - 1], "p5": q[UNUSUAL_PCT - 1],
@@ -120,15 +117,12 @@ def _mean(values) -> float | None:
 
 
 def verdict_for(days: list[dict], var: str) -> dict:
-    """Week verdict for one variable (highs or lows), from its flagged days only.
-
-    Days that can't be judged (too little history, or no forecast value) are "unknown". If
-    fewer than 5 of 7 days can be judged, the verdict is "not_enough_history", never "normal".
-    """
+    """Week verdict for highs or lows. Too few judgeable days gives "not_enough_history",
+    never "normal"."""
     unusual = sum(d[var]["level"] in FLAGGED for d in days)
     very = sum(d[var]["level"] == "very_unusual" for d in days)
     known = sum(d[var]["level"] != "unknown" for d in days)
-    # why a day can't be judged matters to the reader: no forecast vs thin history
+    # lets the banner say what is missing: the forecast, or the history
     no_forecast = sum(d[var]["level"] == "unknown" and d[var].get("forecast") is None for d in days)
     if known < MIN_DAYS_FOR_VERDICT:
         verdict = "not_enough_history"
@@ -143,8 +137,8 @@ def verdict_for(days: list[dict], var: str) -> dict:
 
 
 def summarize_week(days: list[dict]) -> dict:
-    """Separate verdicts for highs (days) and lows (nights). They are never combined:
-    counting a day when either was flagged made about 3 in 4 ordinary weeks "unusual"."""
+    """Separate verdicts for highs (days) and lows (nights). Combining them over-flags
+    ordinary weeks."""
     return {
         "avg_high_anomaly": _mean(d["high"]["anomaly"] for d in days),
         "avg_low_anomaly": _mean(d["low"]["anomaly"] for d in days),
@@ -160,14 +154,14 @@ def week_totals(rows: list[dict | None]) -> dict:
     return {
         "avg_high": _mean(r.get("high") for r in rows),
         "avg_low": _mean(r.get("low") for r in rows),
-        # a total with missing days would look drier than it was, so require all 7
+        # a total with missing days would look too dry, so require every day
         "total_rain": sum(rains) if all(v is not None for v in rains) else None,
         "days_with_data": sum(r.get("high") is not None for r in rows),
     }
 
 
 def rain_summary(forecast_days: dict, history: dict, years_back: list[int]) -> dict:
-    """Rain is mostly zeros, so compare weekly totals only (PLAN.md gotcha 16)."""
+    """Rain is mostly zeros, so compare weekly totals, not daily percentiles."""
     week = sorted(forecast_days)
     forecast_total = week_totals([forecast_days[d] for d in week])["total_rain"]
     past = [
@@ -208,7 +202,7 @@ def same_week_years(forecast_days: dict, history: dict, years_back: list[int]) -
     this_week = {
         "rank_warmest": rank,
         "out_of": len(ranked),
-        "past_avg_high": past_mean,  # the chart draws this, so line and sentence agree
+        "past_avg_high": past_mean,  # the chart draws this line, so it matches the sentence
         "vs_past_mean": this_high - past_mean if this_high is not None and past_mean is not None else None,
     }
     return rows, this_week

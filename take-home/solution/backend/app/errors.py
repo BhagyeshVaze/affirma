@@ -1,4 +1,4 @@
-"""Errors the API returns. Each maps to one HTTP status and one `code` (PLAN.md section 5)."""
+"""Errors the API returns. Each has one HTTP status and one `code`."""
 
 
 class ApiError(Exception):

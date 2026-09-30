@@ -39,7 +39,7 @@ def health():
     return {"status": "ok"}
 
 
-# --- one error shape for everything (PLAN.md section 5) ----------------------
+# --- one error shape for every response --------------------------------------
 
 def error_response(status: int, code: str, message: str, retry_after_s: int | None = None):
     headers = {"Retry-After": str(retry_after_s)} if retry_after_s else None

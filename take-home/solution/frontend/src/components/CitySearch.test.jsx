@@ -37,7 +37,7 @@ function setup() {
   return { onPick, input }
 }
 
-it('Enter does not pick a stale result the user can no longer see (review bug 2)', async () => {
+it('Enter does not pick a stale result the user can no longer see', async () => {
   const { onPick, input } = setup()
   fireEvent.change(input, { target: { value: 'Portland' } })
   await screen.findByText(OREGON.label)
@@ -54,7 +54,7 @@ it('Enter does not pick a stale result the user can no longer see (review bug 2)
   expect(onPick).toHaveBeenCalledExactlyOnceWith(MAINE)
 })
 
-it('picking a city does not fire another search for its label (review bug 7)', async () => {
+it('picking a city does not fire another search for its label', async () => {
   const { onPick, input } = setup()
   fireEvent.change(input, { target: { value: 'Portland' } })
   await screen.findByText(OREGON.label)
@@ -66,7 +66,7 @@ it('picking a city does not fire another search for its label (review bug 7)', a
   expect(queries()).toEqual(['Portland'])
 })
 
-it('after a pick, typing the exact label again still searches (finding 5)', async () => {
+it('after a pick, typing the exact label again still searches', async () => {
   const { input } = setup()
   fireEvent.change(input, { target: { value: 'Portland' } })
   await screen.findByText(OREGON.label)

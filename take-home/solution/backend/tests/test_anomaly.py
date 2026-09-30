@@ -171,7 +171,7 @@ def test_same_week_leaves_incomplete_years_out_of_rank():
     assert this_week["out_of"] == 3
 
 
-# --- not enough history (review bug 1) ----------------------------------------
+# --- not enough history -------------------------------------------------------
 
 def unknown_day() -> dict:
     return {"level": "unknown", "anomaly": None}
@@ -194,11 +194,10 @@ def test_thin_history_beats_flagged_days():
     assert summarize_week(days)["highs"]["verdict"] == "not_enough_history"
 
 
-# --- the chart band and the flags must agree (second review, finding 2) --------
+# --- the chart band and the flags agree ---------------------------------------
 
 def test_flag_matches_the_drawn_band_and_the_shown_percentile():
-    """A day is flagged exactly when its value is outside the p5 to p95 band the chart draws,
-    and the percentile the table shows agrees with the band."""
+    """Flagged exactly when outside the band the chart draws; the shown percentile agrees."""
     import random
     rng = random.Random(7)
     mismatches = []
@@ -216,7 +215,7 @@ def test_flag_matches_the_drawn_band_and_the_shown_percentile():
 
 
 def test_verdict_says_when_the_forecast_is_what_is_missing():
-    """Second review, finding 3: no forecast values is a different problem from thin history."""
+    """A missing forecast is reported apart from thin history."""
     no_forecast = {"level": "unknown", "anomaly": None, "forecast": None}
     thin = {"level": "unknown", "anomaly": None, "forecast": 20.0}
     s = summarize_week([{"high": no_forecast, "low": thin}] * 7)
@@ -226,8 +225,7 @@ def test_verdict_says_when_the_forecast_is_what_is_missing():
 
 
 def test_same_week_past_average_is_the_one_used_for_the_comparison():
-    """Second review: the chart's "past average" line and the sentence must use the same
-    years. A year with too few days is left out of both."""
+    """The chart's past-average line and the sentence use the same years."""
     history = make_history(3, value_for=lambda d, y: 20.0 - y)   # past highs 19, 18, 17
     for d in WEEK[:2]:
         history[shift_years(d, 3)]["high"] = None               # 2023 has only 5 days
