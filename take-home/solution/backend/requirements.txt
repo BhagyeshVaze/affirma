@@ -1,0 +1,10 @@
+fastapi==0.142.2
+uvicorn[standard]==0.54.0
+httpx==0.28.1
+pydantic==2.13.5
+cachetools==7.2.0
+
+# tests
+pytest==9.1.1
+pytest-asyncio==1.4.0
+respx==0.23.1
