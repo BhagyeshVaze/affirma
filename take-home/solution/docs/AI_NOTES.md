@@ -1,7 +1,8 @@
 # How AI was used
 
 Tool: Claude (Opus 5.5) in Claude Code. It read the task docs, wrote the plan, and wrote the
-code in small commits. I reviewed each step and chose the defaults.
+code in small commits. The plan's suggested defaults (PLAN.md section 2) were kept to fit the
+time box. Each is one constant, so it is easy to change.
 
 No secrets or private data were shared: the app needs no API keys, and only public Open-Meteo
 data was used.
