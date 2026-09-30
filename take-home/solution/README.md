@@ -47,8 +47,9 @@ npm test
 
 There are 102 backend tests. They cover the math (including a 3,000-case check that the chart
 band and the flags always agree), dates, units, parsing, odd upstream replies, caching, the call
-budget, and every route, with Open-Meteo mocked, so they need no network. There are 6 frontend
-tests, for the city search's keyboard and debounce behavior and for the verdict banner.
+budget, and every route, with Open-Meteo mocked, so they need no network. There are 10 frontend
+tests, for the city search's keyboard and debounce behavior, the verdict banner, and which side
+the week chart opens on.
 
 ## What the dashboard shows
 
@@ -56,7 +57,8 @@ tests, for the city search's keyboard and debounce behavior and for the verdict 
   shows how many of the 7 days fall outside the normal range, and the average difference from
   normal.
 - **Week chart:** the forecast against a shaded normal range (5th to 95th percentile of past
-  values) and the average. Days that are unusually warm or cool are marked. Toggle highs or lows.
+  values) and the average. Days that are unusually warm or cool are marked. It opens on whichever
+  of highs or lows has the stronger verdict, so it matches the banner; the toggle switches it.
 - **Same week in past years:** the average high for these 7 dates in each past year, with this
   week highlighted and ranked.
 - **Rain:** this week's forecast total against the same 7 dates in past years.

@@ -34,3 +34,7 @@ export const VERDICT_TEXT = {
 // For the banner's border color only. "Not enough history" never outranks a real verdict.
 const RANK = { not_enough_history: -1, normal: 0, somewhat_unusual: 1, very_unusual: 2 }
 export const worstVerdict = (a, b) => (RANK[a] >= RANK[b] ? a : b)
+
+// Which of highs or lows the week chart should open on: the stronger verdict, highs on a tie.
+export const strongerMeasure = (week) =>
+  RANK[week.lows.verdict] > RANK[week.highs.verdict] ? 'low' : 'high'

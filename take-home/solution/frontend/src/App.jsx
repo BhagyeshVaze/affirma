@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { strongerMeasure } from './format.js'
 import { useApi } from './useApi.js'
 import CitySearch from './components/CitySearch.jsx'
 import { Segmented, YearsSelect } from './components/Controls.jsx'
@@ -36,11 +37,19 @@ export default function App() {
   const [place, setPlaceState] = useState(placeFromUrl)
   const setPlace = (p) => {
     setPlaceState(p)
+    setMeasureChoice(null) // a new city starts on its own stronger verdict
     placeToUrl(p)
   }
   const [years, setYears] = useState(10)
   const [units, setUnits] = useState('imperial')
-  const [measure, setMeasure] = useState('high')
+  // The data lives here so the chart and its toggle read the same value in the same render.
+  const params = place ? { lat: place.latitude, lon: place.longitude, years, units } : null
+  const anomaly = useApi('/api/weather/anomaly', params)
+  const sameWeek = useApi('/api/weather/same-week', params)
+
+  // The chart shows the user's pick if they made one, else the stronger of highs and lows.
+  const [measureChoice, setMeasureChoice] = useState(null)
+  const measure = measureChoice ?? (anomaly.data ? strongerMeasure(anomaly.data.week) : 'high')
 
   return (
     <div className="page">
@@ -63,13 +72,13 @@ export default function App() {
         <Segmented
           label="Chart"
           value={measure}
-          onChange={setMeasure}
+          onChange={setMeasureChoice}
           options={[{ value: 'high', label: 'Highs' }, { value: 'low', label: 'Lows' }]}
         />
       </div>
 
       {place ? (
-        <Dashboard place={place} years={years} units={units} measure={measure} />
+        <Dashboard place={place} anomaly={anomaly} sameWeek={sameWeek} measure={measure} />
       ) : (
         <Empty title="Search for a city to begin.">
           <p>Or try one of these:</p>
@@ -93,10 +102,7 @@ export default function App() {
   )
 }
 
-function Dashboard({ place, years, units, measure }) {
-  const params = { lat: place.latitude, lon: place.longitude, years, units }
-  const anomaly = useApi('/api/weather/anomaly', params)
-  const sameWeek = useApi('/api/weather/same-week', params)
+function Dashboard({ place, anomaly, sameWeek, measure }) {
   const retryAll = () => {
     anomaly.retry()
     sameWeek.retry()

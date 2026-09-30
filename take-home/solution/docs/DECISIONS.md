@@ -144,9 +144,9 @@ tilt the line a lot, and "very unusual" went up (16% to 18% in 2025, 14% to 20% 
 - **"Very unusual" rests on few values.** At 10 years, the 2nd and 98th percentiles depend on the
   2 or 3 most extreme days out of 70.
 - **The cache is lost on restart** and isn't shared between processes.
-- **Few frontend tests.** Six Vitest tests cover the search box and the verdict banner. The rest
-  was checked by hand: every state, keyboard search, 30 years, both units, the mobile layout, and
-  the backend going down.
+- **Few frontend tests.** Ten Vitest tests cover the search box, the verdict banner, and which
+  side the week chart opens on. The rest was checked by hand: every state, keyboard search,
+  30 years, both units, the mobile layout, and the backend going down.
 
 ## Potential future steps
 

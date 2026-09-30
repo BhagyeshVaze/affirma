@@ -352,8 +352,10 @@ including recovering after 60 s.
 - **"Compare with":** sets how many past years to use (5, 10, 20, or 30). Only new years are
   fetched; cached ones are reused.
 - **°F/°C:** sends a new request, which costs 0 upstream calls because the data is cached in metric.
-- **Highs/Lows:** only switches the week chart, with no new request. The same-week chart always
-  shows highs.
+- **Highs/Lows:** switches the week chart, with no new request. The chart opens on whichever
+  side has the stronger verdict (very > somewhat > normal, highs on a tie), so it matches the
+  banner. A manual pick sticks when years or units change; a new city starts on its own
+  stronger side again. The same-week chart always shows highs.
 
 **35. What does each chart and card show, and how is "unusual" shown besides color?**
 - **Verdict banner:** "Days: ... Nights: ...", then for each the count of flagged days and the
@@ -381,7 +383,7 @@ is always flagged, and a dot inside it never is.
 ## Tests
 
 **37. How many tests, grouped by what they cover?**
-102 backend tests and 6 frontend tests, all passing:
+102 backend tests and 10 frontend tests, all passing:
 
 | File | Tests | What they cover |
 |---|---|---|
@@ -393,6 +395,7 @@ is always flagged, and a dot inside it never is.
 | `test_cache.py` | 3 | Call budget limit and recovery, in-flight dedup, failed fetch not cached |
 | `frontend/.../CitySearch.test.jsx` | 3 | Enter can't pick a stale hidden result; picking doesn't fire a wasted search; retyping a picked label searches again |
 | `frontend/.../VerdictBanner.test.jsx` | 3 | Names a missing forecast vs thin history; counts the real number of days |
+| `frontend/src/App.test.jsx` | 4 | The week chart opens on the stronger verdict; a manual pick sticks through years and units; without one, it follows the data |
 
 Both suites were run repeatedly to check for flakiness: the frontend 20 times (5 under heavy CPU
 load) and the backend 5 times, with no failures.
