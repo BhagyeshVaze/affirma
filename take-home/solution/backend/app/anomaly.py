@@ -4,6 +4,7 @@
 `years_back` is the list of past-year offsets that loaded (1 = last year).
 """
 
+import bisect
 import statistics
 from datetime import date, timedelta
 
@@ -40,18 +41,43 @@ def baseline_samples(
 
 
 def pct_rank(value: float, samples: list[float]) -> float:
-    """Percent of samples below `value`, counting ties as half."""
-    below = sum(s < value for s in samples)
-    ties = sum(s == value for s in samples)
-    return 100 * (below + 0.5 * ties) / len(samples)
+    """Where `value` sits on the same scale as statistics.quantiles(method="inclusive"):
+    0 at the smallest sample, 100 at the largest, straight lines in between. Using one scale
+    for the band, the flag, and the shown percentile keeps the three in agreement.
+    A value equal to several samples gets the middle of their positions.
+    """
+    s = sorted(samples)
+    n = len(s)
+    if n == 1:
+        return 50.0
+    lo, hi = bisect.bisect_left(s, value), bisect.bisect_right(s, value)
+    if lo < hi:  # ties
+        position = (lo + hi - 1) / 2
+    elif lo == 0:
+        position = 0.0
+    elif lo == n:
+        position = n - 1.0
+    else:
+        position = (lo - 1) + (value - s[lo - 1]) / (s[lo] - s[lo - 1])
+    return 100 * position / (n - 1)
 
 
-def classify(pct: float) -> str:
-    if pct < VERY_UNUSUAL_PCT or pct > 100 - VERY_UNUSUAL_PCT:
+def classify(value: float, cuts: dict) -> str:
+    """Level from where the value sits against the percentile lines (the chart's band)."""
+    if value < cuts["p2"] or value > cuts["p98"]:
         return "very_unusual"
-    if pct < UNUSUAL_PCT or pct > 100 - UNUSUAL_PCT:
+    if value < cuts["p5"] or value > cuts["p95"]:
         return "unusual"
     return "normal"
+
+
+def percentile_lines(samples: list[float]) -> dict:
+    """The flag lines: p5/p95 (unusual) and p2/p98 (very unusual), from the constants above."""
+    q = statistics.quantiles(samples, n=100, method="inclusive")  # q[k - 1] is the kth percentile
+    return {
+        "p2": q[VERY_UNUSUAL_PCT - 1], "p5": q[UNUSUAL_PCT - 1],
+        "p95": q[99 - UNUSUAL_PCT], "p98": q[99 - VERY_UNUSUAL_PCT],
+    }
 
 
 def compare(forecast: float | None, samples: list[float]) -> dict:
@@ -62,15 +88,14 @@ def compare(forecast: float | None, samples: list[float]) -> dict:
     }
     if len(samples) < MIN_SAMPLES:
         return result
-    # 5% steps: cut point 0 is the 5th percentile, 18 is the 95th (the "unusual" lines)
-    cuts = statistics.quantiles(samples, n=20, method="inclusive")
-    result.update(normal=statistics.fmean(samples), p5=cuts[0], p95=cuts[18])
+    cuts = percentile_lines(samples)
+    result.update(normal=statistics.fmean(samples), p5=cuts["p5"], p95=cuts["p95"])
     if forecast is None:
         return result
     anomaly = forecast - result["normal"]
-    pct = pct_rank(forecast, samples)
     direction = "warmer" if anomaly > 0 else "cooler" if anomaly < 0 else "same"
-    result.update(anomaly=anomaly, pct_rank=pct, level=classify(pct), direction=direction)
+    result.update(anomaly=anomaly, pct_rank=pct_rank(forecast, samples),
+                  level=classify(forecast, cuts), direction=direction)
     return result
 
 

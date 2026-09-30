@@ -36,7 +36,9 @@ def test_pct_rank_counts_ties_as_half():
     (50, "normal"), (95, "normal"), (95.1, "unusual"), (98, "unusual"), (98.1, "very_unusual"),
 ])
 def test_classify_boundaries(pct, level):
-    assert classify(pct) == level
+    # lines placed at 2, 5, 95, 98, so a value on a line counts as inside it
+    lines = {"p2": 2, "p5": 5, "p95": 95, "p98": 98}
+    assert classify(pct, lines) == level
 
 
 # --- baseline_samples --------------------------------------------------------
@@ -62,7 +64,7 @@ def test_compare_normal_day():
     assert r["p5"] == pytest.approx(4.95)
     assert r["p95"] == pytest.approx(94.05)
     assert r["anomaly"] == pytest.approx(0.5)
-    assert r["pct_rank"] == pytest.approx(50.5)
+    assert r["pct_rank"] == pytest.approx(100 * 50 / 99)  # 50 is sample 50 of 0..99
     assert r["level"] == "normal"
     assert r["direction"] == "warmer"
 
@@ -190,3 +192,24 @@ def test_thin_history_beats_flagged_days():
     # 4 flagged days would be "somewhat unusual", but only 4 of 7 days can be judged at all
     days = [day("unusual")] * 4 + [{"high": unknown_day(), "low": unknown_day()}] * 3
     assert summarize_week(days)["highs"]["verdict"] == "not_enough_history"
+
+
+# --- the chart band and the flags must agree (second review, finding 2) --------
+
+def test_flag_matches_the_drawn_band_and_the_shown_percentile():
+    """A day is flagged exactly when its value is outside the p5 to p95 band the chart draws,
+    and the percentile the table shows agrees with the band."""
+    import random
+    rng = random.Random(7)
+    mismatches = []
+    for _ in range(3000):
+        n = rng.choice([35, 70, 210])
+        samples = [round(rng.gauss(20, 5), 1) for _ in range(n)]  # 0.1° steps, so ties happen
+        forecast = round(rng.gauss(20, 7), 1)
+        r = compare(forecast, samples)
+        outside = forecast < r["p5"] or forecast > r["p95"]
+        if (r["level"] != "normal") != outside:
+            mismatches.append(("level", forecast, r["p5"], r["p95"], r["level"]))
+        if forecast not in samples and ((r["pct_rank"] > 95 or r["pct_rank"] < 5) != outside):
+            mismatches.append(("pct", forecast, r["p5"], r["p95"], r["pct_rank"]))
+    assert mismatches == []
