@@ -81,7 +81,10 @@ def test_anomaly_happy_path(client, upstream):
     # 1 flagged high out of 7 is still a normal week; highs and lows are judged separately
     assert body["week"]["highs"] == {"unusual_days": 1, "very_unusual_days": 1,
                                      "days_with_history": 7, "verdict": "normal"}
-    assert body["week"]["lows"]["verdict"] in ("normal", "somewhat_unusual", "very_unusual")
+    # forecast lows of 10 °C sit mid-range in the mocked history (7 to 13 °C): 50th percentile
+    assert body["week"]["lows"] == {"unusual_days": 0, "very_unusual_days": 0,
+                                    "days_with_history": 7, "verdict": "normal"}
+    assert body["days"][0]["low"]["pct_rank"] == 50.0
     assert set(body["days"][0]["high"]) >= {"p5", "p95"}
     assert body["units"] == {"temperature": "°F", "precipitation": "in"}
 
