@@ -17,3 +17,6 @@ dist/
 # Local env files
 .env
 .env.*
+
+# Backtest download cache
+scripts/.cache/
