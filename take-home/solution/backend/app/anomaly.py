@@ -19,6 +19,7 @@ VERY_UNUSUAL_PCT = 2       # outside the 2nd to 98th percentile
 SOMEWHAT_UNUSUAL_DAYS = 3  # week verdict: 0-2 flagged days normal, 3-4 somewhat, 5-7 very
 VERY_UNUSUAL_DAYS = 5
 MIN_DAYS_FOR_RANK = 6      # a past week needs 6 of 7 days of data to be ranked
+MIN_DAYS_FOR_VERDICT = 5   # fewer judgeable days than this -> "not_enough_history"
 
 TEMP_VARS = ("high", "low")
 FLAGGED = ("unusual", "very_unusual")
@@ -94,16 +95,24 @@ def _mean(values) -> float | None:
 
 
 def verdict_for(days: list[dict], var: str) -> dict:
-    """Week verdict for one variable (highs or lows), from its flagged days only."""
+    """Week verdict for one variable (highs or lows), from its flagged days only.
+
+    Days with too little history are "unknown". If fewer than 5 of 7 days can be judged,
+    the verdict is "not_enough_history", never "normal".
+    """
     unusual = sum(d[var]["level"] in FLAGGED for d in days)
     very = sum(d[var]["level"] == "very_unusual" for d in days)
-    if unusual >= VERY_UNUSUAL_DAYS:
+    known = sum(d[var]["level"] != "unknown" for d in days)
+    if known < MIN_DAYS_FOR_VERDICT:
+        verdict = "not_enough_history"
+    elif unusual >= VERY_UNUSUAL_DAYS:
         verdict = "very_unusual"
     elif unusual >= SOMEWHAT_UNUSUAL_DAYS:
         verdict = "somewhat_unusual"
     else:
         verdict = "normal"
-    return {"unusual_days": unusual, "very_unusual_days": very, "verdict": verdict}
+    return {"unusual_days": unusual, "very_unusual_days": very, "days_with_history": known,
+            "verdict": verdict}
 
 
 def summarize_week(days: list[dict]) -> dict:

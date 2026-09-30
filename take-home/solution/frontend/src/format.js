@@ -28,7 +28,9 @@ export const VERDICT_TEXT = {
   normal: 'normal',
   somewhat_unusual: 'somewhat unusual',
   very_unusual: 'very unusual',
+  not_enough_history: 'not enough history',
 }
 
-const RANK = { normal: 0, somewhat_unusual: 1, very_unusual: 2 }
+// For the banner's border color only. "Not enough history" never outranks a real verdict.
+const RANK = { not_enough_history: -1, normal: 0, somewhat_unusual: 1, very_unusual: 2 }
 export const worstVerdict = (a, b) => (RANK[a] >= RANK[b] ? a : b)

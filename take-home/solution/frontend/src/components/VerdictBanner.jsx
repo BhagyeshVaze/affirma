@@ -6,11 +6,18 @@ function Part({ title, v, anomaly, unit }) {
     <div className="verdict-part">
       <h3>{title}</h3>
       <p className={`verdict-word v-${v.verdict}`}>{VERDICT_TEXT[v.verdict]}</p>
-      <p>
-        {v.unusual_days} of 7 outside the normal range
-        {v.very_unusual_days > 0 && <> ({v.very_unusual_days} very unusual)</>}, average{' '}
-        {signed(anomaly)}{unit} vs normal
-      </p>
+      {v.verdict === 'not_enough_history' ? (
+        <p>
+          Only {v.days_with_history} of 7 days have enough past data to judge (5 are needed). Try
+          more years, or try again later.
+        </p>
+      ) : (
+        <p>
+          {v.unusual_days} of 7 outside the normal range
+          {v.very_unusual_days > 0 && <> ({v.very_unusual_days} very unusual)</>}, average{' '}
+          {signed(anomaly)}{unit} vs normal
+        </p>
+      )}
     </div>
   )
 }

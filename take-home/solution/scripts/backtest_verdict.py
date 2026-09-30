@@ -109,7 +109,8 @@ def worst(*levels: str) -> str:
     return "very" if "very" in levels else "somewhat" if "somewhat" in levels else "normal"
 
 
-SHIPPED = {"normal": "normal", "somewhat_unusual": "somewhat", "very_unusual": "very"}
+SHIPPED = {"normal": "normal", "somewhat_unusual": "somewhat", "very_unusual": "very",
+           "not_enough_history": "no history"}
 
 RULES = {
     "old: high or low, p10-90, 0-1 / 2-4 / 5-7 days":

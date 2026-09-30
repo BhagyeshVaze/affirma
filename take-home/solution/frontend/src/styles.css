@@ -112,7 +112,8 @@ button:hover { background: var(--hover); }
 
 /* verdict */
 .verdict { border-left-width: 5px; }
-.verdict-normal { border-left-color: var(--grid-strong); }
+.verdict-normal, .verdict-not_enough_history { border-left-color: var(--grid-strong); }
+.verdict-word.v-not_enough_history { color: var(--text-2); }
 .verdict-somewhat_unusual { border-left-color: #eda100; }
 .verdict-very_unusual { border-left-color: var(--warm); }
 .eyebrow { margin: 0 0 4px; font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; }

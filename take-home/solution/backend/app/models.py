@@ -85,7 +85,8 @@ class RainSummary(BaseModel):
 class Verdict(BaseModel):
     unusual_days: int
     very_unusual_days: int
-    verdict: Literal["normal", "somewhat_unusual", "very_unusual"]
+    days_with_history: int
+    verdict: Literal["normal", "somewhat_unusual", "very_unusual", "not_enough_history"]
 
 
 class WeekSummary(BaseModel):

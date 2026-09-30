@@ -106,8 +106,10 @@ def test_highs_and_lows_get_separate_verdicts_never_combined():
     # 3 days with an unusual high only, 3 other days with an unusual low only
     days = [day("unusual", "normal")] * 3 + [day("normal", "unusual")] * 3 + [day("normal")]
     s = summarize_week(days)
-    assert s["highs"] == {"unusual_days": 3, "very_unusual_days": 0, "verdict": "somewhat_unusual"}
-    assert s["lows"] == {"unusual_days": 3, "very_unusual_days": 0, "verdict": "somewhat_unusual"}
+    assert s["highs"] == {"unusual_days": 3, "very_unusual_days": 0, "days_with_history": 7,
+                          "verdict": "somewhat_unusual"}
+    assert s["lows"] == {"unusual_days": 3, "very_unusual_days": 0, "days_with_history": 7,
+                         "verdict": "somewhat_unusual"}
 
 
 def test_very_unusual_days_count_as_flagged_and_are_reported():
@@ -121,6 +123,7 @@ def test_unknown_days_do_not_count_and_null_anomalies_are_skipped():
     days = [{"high": {"level": "unknown", "anomaly": None}, "low": {"level": "unknown", "anomaly": None}}] * 7
     s = summarize_week(days)
     assert s["highs"]["unusual_days"] == 0
+    assert s["highs"]["verdict"] == "not_enough_history"
     assert s["avg_high_anomaly"] is None
 
 
@@ -164,3 +167,26 @@ def test_same_week_leaves_incomplete_years_out_of_rank():
     rows, this_week = same_week_years(forecast, history, [1, 2, 3])
     assert rows[2]["days_with_data"] == 5
     assert this_week["out_of"] == 3
+
+
+# --- not enough history (review bug 1) ----------------------------------------
+
+def unknown_day() -> dict:
+    return {"level": "unknown", "anomaly": None}
+
+
+@pytest.mark.parametrize("known, verdict", [
+    (0, "not_enough_history"), (4, "not_enough_history"), (5, "normal"), (7, "normal"),
+])
+def test_verdict_needs_5_of_7_days_with_enough_history(known, verdict):
+    days = [day("normal")] * known + [{"high": unknown_day(), "low": unknown_day()}] * (7 - known)
+    s = summarize_week(days)
+    assert s["highs"]["verdict"] == verdict
+    assert s["lows"]["verdict"] == verdict
+    assert s["highs"]["days_with_history"] == known
+
+
+def test_thin_history_beats_flagged_days():
+    # 4 flagged days would be "somewhat unusual", but only 4 of 7 days can be judged at all
+    days = [day("unusual")] * 4 + [{"high": unknown_day(), "low": unknown_day()}] * 3
+    assert summarize_week(days)["highs"]["verdict"] == "not_enough_history"

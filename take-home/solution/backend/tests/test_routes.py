@@ -79,7 +79,8 @@ def test_anomaly_happy_path(client, upstream):
     assert body["days"][0]["high"]["forecast"] == 68.0  # 20 °C in °F
     assert body["days"][6]["high"]["level"] == "very_unusual"
     # 1 flagged high out of 7 is still a normal week; highs and lows are judged separately
-    assert body["week"]["highs"] == {"unusual_days": 1, "very_unusual_days": 1, "verdict": "normal"}
+    assert body["week"]["highs"] == {"unusual_days": 1, "very_unusual_days": 1,
+                                     "days_with_history": 7, "verdict": "normal"}
     assert body["week"]["lows"]["verdict"] in ("normal", "somewhat_unusual", "very_unusual")
     assert set(body["days"][0]["high"]) >= {"p5", "p95"}
     assert body["units"] == {"temperature": "°F", "precipitation": "in"}
@@ -227,3 +228,20 @@ def test_unknown_route_uses_our_error_shape(client):
     r = client.get("/api/nope")
     assert r.status_code == 404
     assert r.json()["error"]["code"] == "not_found"
+
+
+def test_five_years_with_one_failing_is_not_enough_history(client, upstream):
+    """Review bug 1: 4 of 5 years pass the history check, but 4 x 7 = 28 samples per day is
+    under the 30 minimum, so every day is unknown. That must not be reported as "normal"."""
+    def flaky(request):
+        if request.url.params["start_date"].startswith("2021"):
+            return httpx.Response(500)
+        return archive_response(request)
+    upstream.archive.mock(side_effect=flaky)
+    body = client.get(ANOMALY + "&years=5").json()
+    assert body["baseline"]["years_used"] == 4
+    assert body["days"][0]["high"]["n"] == 28
+    assert body["days"][0]["high"]["level"] == "unknown"
+    for part in ("highs", "lows"):
+        assert body["week"][part]["verdict"] == "not_enough_history"
+        assert body["week"][part]["days_with_history"] == 0
