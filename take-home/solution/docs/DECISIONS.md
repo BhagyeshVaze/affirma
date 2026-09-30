@@ -148,16 +148,13 @@ tilt the line a lot, and "very unusual" went up (16% to 18% in 2025, 14% to 20% 
   was checked by hand: every state, keyboard search, 30 years, both units, the mobile layout, and
   the backend going down.
 
-## Not done
+## Potential future steps
 
 - Trend line on the same-week chart. With 10 points it's mostly noise (see above). Worth it only
   at 20+ years, with a confidence interval.
 - Serving old cached data when Open-Meteo is rate limited.
 - A rate limit on our own API. Right now only the upstream budget is enforced.
-
-## Next steps
-
-1. Backtest against real archived forecasts (Open-Meteo has a historical forecast API), so the
-   forecast vs history gap is measured instead of guessed.
-2. Try a 30-year baseline in the backtest to see how the warming tilt changes.
-3. Add more frontend tests for `useApi` and the loading, empty, and error states.
+- Backtest against real archived forecasts (Open-Meteo has a historical forecast API), so the
+  forecast vs history gap is measured instead of guessed.
+- Try a 30-year baseline in the backtest to see how the warming tilt changes.
+- Add more frontend tests for `useApi` and the loading, empty, and error states.
