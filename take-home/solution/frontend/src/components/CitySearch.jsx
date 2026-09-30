@@ -24,8 +24,15 @@ export default function CitySearch({ onPick }) {
     setOpen(false)
   }
 
+  // The list only shows results for what is typed now. While the next search is pending
+  // (debounce), the old results are hidden, and the keyboard must not act on them.
+  const showList = open && query.length >= 2 && text.trim() === query
+
   function onKeyDown(e) {
-    if (!open || !results.length) return
+    if (!showList || !results.length) {
+      if (e.key === 'Enter') e.preventDefault()
+      return
+    }
     if (e.key === 'ArrowDown') {
       e.preventDefault()
       setActive((i) => (i + 1) % results.length)
@@ -39,8 +46,6 @@ export default function CitySearch({ onPick }) {
       setOpen(false)
     }
   }
-
-  const showList = open && query.length >= 2 && text.trim() === query
 
   return (
     <div className="search">
