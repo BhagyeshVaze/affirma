@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useApi } from '../useApi.js'
 
 export default function CitySearch({ onPick }) {
@@ -6,9 +6,12 @@ export default function CitySearch({ onPick }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
+  const pickedLabel = useRef(null)
 
-  // debounce: search 300 ms after typing stops, and only with 2+ characters
+  // debounce: search 300 ms after typing stops, and only with 2+ characters.
+  // After a pick, the box shows the place's label; that is not something to search for.
   useEffect(() => {
+    if (text === pickedLabel.current) return
     const id = setTimeout(() => setQuery(text.trim()), 300)
     return () => clearTimeout(id)
   }, [text])
@@ -20,6 +23,7 @@ export default function CitySearch({ onPick }) {
 
   function pick(place) {
     onPick(place)
+    pickedLabel.current = place.label
     setText(place.label)
     setOpen(false)
   }

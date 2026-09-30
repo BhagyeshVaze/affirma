@@ -53,3 +53,15 @@ it('Enter does not pick a stale result the user can no longer see (review bug 2)
   fireEvent.keyDown(input, { key: 'Enter' })
   expect(onPick).toHaveBeenCalledExactlyOnceWith(MAINE)
 })
+
+it('picking a city does not fire another search for its label (review bug 7)', async () => {
+  const { onPick, input } = setup()
+  fireEvent.change(input, { target: { value: 'Portland' } })
+  await screen.findByText(OREGON.label)
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(onPick).toHaveBeenCalledExactlyOnceWith(OREGON)
+  expect(input.value).toBe(OREGON.label)
+
+  await wait(450) // longer than the debounce
+  expect(queries()).toEqual(['Portland'])
+})
