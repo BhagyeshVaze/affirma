@@ -128,7 +128,7 @@ def convert_comparison(c: dict, units: u.Units) -> dict:
     return {
         **c,
         "forecast": u.temp(c["forecast"], units), "normal": u.temp(c["normal"], units),
-        "p10": u.temp(c["p10"], units), "p90": u.temp(c["p90"], units),
+        "p5": u.temp(c["p5"], units), "p95": u.temp(c["p95"], units),
         "anomaly": u.temp_delta(c["anomaly"], units),
         "pct_rank": round(c["pct_rank"], 1) if c["pct_rank"] is not None else None,
     }

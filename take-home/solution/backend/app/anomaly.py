@@ -10,11 +10,13 @@ from datetime import date, timedelta
 from .dates import shift_years
 
 # Decisions from PLAN.md section 2, in one place
+# The day band and week thresholds were picked by backtest (scripts/backtest_verdict.py,
+# DECISIONS.md): about 83% of ordinary weeks come out "normal" and about 3% "very unusual".
 WINDOW_DAYS = 3            # plus or minus days around each date
 MIN_SAMPLES = 30           # fewer baseline values than this -> level "unknown"
-UNUSUAL_PCT = 10           # outside the 10th to 90th percentile
+UNUSUAL_PCT = 5            # outside the 5th to 95th percentile
 VERY_UNUSUAL_PCT = 2       # outside the 2nd to 98th percentile
-SOMEWHAT_UNUSUAL_DAYS = 2  # week verdict thresholds (days flagged out of 7)
+SOMEWHAT_UNUSUAL_DAYS = 3  # week verdict: 0-2 flagged days normal, 3-4 somewhat, 5-7 very
 VERY_UNUSUAL_DAYS = 5
 MIN_DAYS_FOR_RANK = 6      # a past week needs 6 of 7 days of data to be ranked
 
@@ -54,13 +56,14 @@ def classify(pct: float) -> str:
 def compare(forecast: float | None, samples: list[float]) -> dict:
     """Compare one forecast value with its baseline samples."""
     result = {
-        "forecast": forecast, "normal": None, "p10": None, "p90": None, "anomaly": None,
+        "forecast": forecast, "normal": None, "p5": None, "p95": None, "anomaly": None,
         "pct_rank": None, "level": "unknown", "direction": None, "n": len(samples),
     }
     if len(samples) < MIN_SAMPLES:
         return result
-    deciles = statistics.quantiles(samples, n=10, method="inclusive")
-    result.update(normal=statistics.fmean(samples), p10=deciles[0], p90=deciles[8])
+    # 5% steps: cut point 0 is the 5th percentile, 18 is the 95th (the "unusual" lines)
+    cuts = statistics.quantiles(samples, n=20, method="inclusive")
+    result.update(normal=statistics.fmean(samples), p5=cuts[0], p95=cuts[18])
     if forecast is None:
         return result
     anomaly = forecast - result["normal"]
@@ -90,21 +93,27 @@ def _mean(values) -> float | None:
     return statistics.fmean(values) if values else None
 
 
-def summarize_week(days: list[dict]) -> dict:
-    unusual = sum(any(d[v]["level"] in FLAGGED for v in TEMP_VARS) for d in days)
-    very = sum(any(d[v]["level"] == "very_unusual" for v in TEMP_VARS) for d in days)
+def verdict_for(days: list[dict], var: str) -> dict:
+    """Week verdict for one variable (highs or lows), from its flagged days only."""
+    unusual = sum(d[var]["level"] in FLAGGED for d in days)
+    very = sum(d[var]["level"] == "very_unusual" for d in days)
     if unusual >= VERY_UNUSUAL_DAYS:
         verdict = "very_unusual"
     elif unusual >= SOMEWHAT_UNUSUAL_DAYS:
         verdict = "somewhat_unusual"
     else:
         verdict = "normal"
+    return {"unusual_days": unusual, "very_unusual_days": very, "verdict": verdict}
+
+
+def summarize_week(days: list[dict]) -> dict:
+    """Separate verdicts for highs (days) and lows (nights). They are never combined:
+    counting a day when either was flagged made about 3 in 4 ordinary weeks "unusual"."""
     return {
         "avg_high_anomaly": _mean(d["high"]["anomaly"] for d in days),
         "avg_low_anomaly": _mean(d["low"]["anomaly"] for d in days),
-        "unusual_days": unusual,
-        "very_unusual_days": very,
-        "verdict": verdict,
+        "highs": verdict_for(days, "high"),
+        "lows": verdict_for(days, "low"),
     }
 
 

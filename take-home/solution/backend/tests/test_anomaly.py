@@ -32,8 +32,8 @@ def test_pct_rank_counts_ties_as_half():
 
 
 @pytest.mark.parametrize("pct, level", [
-    (1.9, "very_unusual"), (2, "unusual"), (9.9, "unusual"), (10, "normal"),
-    (50, "normal"), (90, "normal"), (90.1, "unusual"), (98, "unusual"), (98.1, "very_unusual"),
+    (1.9, "very_unusual"), (2, "unusual"), (4.9, "unusual"), (5, "normal"),
+    (50, "normal"), (95, "normal"), (95.1, "unusual"), (98, "unusual"), (98.1, "very_unusual"),
 ])
 def test_classify_boundaries(pct, level):
     assert classify(pct) == level
@@ -59,6 +59,8 @@ def test_compare_normal_day():
     samples = [float(v) for v in range(100)]  # 0..99
     r = compare(50.0, samples)
     assert r["normal"] == pytest.approx(49.5)
+    assert r["p5"] == pytest.approx(4.95)
+    assert r["p95"] == pytest.approx(94.05)
     assert r["anomaly"] == pytest.approx(0.5)
     assert r["pct_rank"] == pytest.approx(50.5)
     assert r["level"] == "normal"
@@ -92,24 +94,33 @@ def day(high_level: str, low_level: str = "normal", anomaly_value: float = 1.0) 
 
 
 @pytest.mark.parametrize("flagged, verdict", [
-    (0, "normal"), (1, "normal"), (2, "somewhat_unusual"), (4, "somewhat_unusual"),
+    (0, "normal"), (2, "normal"), (3, "somewhat_unusual"), (4, "somewhat_unusual"),
     (5, "very_unusual"), (7, "very_unusual"),
 ])
 def test_week_verdict_thresholds(flagged, verdict):
     days = [day("unusual") for _ in range(flagged)] + [day("normal") for _ in range(7 - flagged)]
-    assert summarize_week(days)["verdict"] == verdict
+    assert summarize_week(days)["highs"]["verdict"] == verdict
 
 
-def test_day_counts_once_even_if_high_and_low_both_flagged():
-    s = summarize_week([day("unusual", "very_unusual")] + [day("normal")] * 6)
-    assert s["unusual_days"] == 1
-    assert s["very_unusual_days"] == 1
+def test_highs_and_lows_get_separate_verdicts_never_combined():
+    # 3 days with an unusual high only, 3 other days with an unusual low only
+    days = [day("unusual", "normal")] * 3 + [day("normal", "unusual")] * 3 + [day("normal")]
+    s = summarize_week(days)
+    assert s["highs"] == {"unusual_days": 3, "very_unusual_days": 0, "verdict": "somewhat_unusual"}
+    assert s["lows"] == {"unusual_days": 3, "very_unusual_days": 0, "verdict": "somewhat_unusual"}
+
+
+def test_very_unusual_days_count_as_flagged_and_are_reported():
+    s = summarize_week([day("very_unusual")] * 5 + [day("normal")] * 2)
+    assert s["highs"]["verdict"] == "very_unusual"
+    assert s["highs"]["very_unusual_days"] == 5
+    assert s["lows"]["verdict"] == "normal"
 
 
 def test_unknown_days_do_not_count_and_null_anomalies_are_skipped():
     days = [{"high": {"level": "unknown", "anomaly": None}, "low": {"level": "unknown", "anomaly": None}}] * 7
     s = summarize_week(days)
-    assert s["unusual_days"] == 0
+    assert s["highs"]["unusual_days"] == 0
     assert s["avg_high_anomaly"] is None
 
 

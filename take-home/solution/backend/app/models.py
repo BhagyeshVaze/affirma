@@ -54,8 +54,8 @@ class Baseline(BaseModel):
 class Comparison(BaseModel):
     forecast: float | None
     normal: float | None
-    p10: float | None
-    p90: float | None
+    p5: float | None
+    p95: float | None
     anomaly: float | None
     pct_rank: float | None
     level: Level
@@ -82,14 +82,19 @@ class RainSummary(BaseModel):
     years_compared: int
 
 
+class Verdict(BaseModel):
+    unusual_days: int
+    very_unusual_days: int
+    verdict: Literal["normal", "somewhat_unusual", "very_unusual"]
+
+
 class WeekSummary(BaseModel):
     start: date
     end: date
     avg_high_anomaly: float | None
     avg_low_anomaly: float | None
-    unusual_days: int
-    very_unusual_days: int
-    verdict: Literal["normal", "somewhat_unusual", "very_unusual"]
+    highs: Verdict
+    lows: Verdict
     rain: RainSummary
 
 

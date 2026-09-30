@@ -78,6 +78,10 @@ def test_anomaly_happy_path(client, upstream):
     assert body["days"][0]["high"]["n"] == 70
     assert body["days"][0]["high"]["forecast"] == 68.0  # 20 °C in °F
     assert body["days"][6]["high"]["level"] == "very_unusual"
+    # 1 flagged high out of 7 is still a normal week; highs and lows are judged separately
+    assert body["week"]["highs"] == {"unusual_days": 1, "very_unusual_days": 1, "verdict": "normal"}
+    assert body["week"]["lows"]["verdict"] in ("normal", "somewhat_unusual", "very_unusual")
+    assert set(body["days"][0]["high"]) >= {"p5", "p95"}
     assert body["units"] == {"temperature": "°F", "precipitation": "in"}
 
 
