@@ -25,7 +25,10 @@ export function ordinal(n) {
 }
 
 export const VERDICT_TEXT = {
-  normal: 'A normal week',
-  somewhat_unusual: 'A somewhat unusual week',
-  very_unusual: 'A very unusual week',
+  normal: 'normal',
+  somewhat_unusual: 'somewhat unusual',
+  very_unusual: 'very unusual',
 }
+
+const RANK = { normal: 0, somewhat_unusual: 1, very_unusual: 2 }
+export const worstVerdict = (a, b) => (RANK[a] >= RANK[b] ? a : b)

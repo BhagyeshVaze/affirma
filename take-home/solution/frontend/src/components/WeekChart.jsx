@@ -24,7 +24,7 @@ function ChartTooltip({ active, payload, unit }) {
       <strong>{d.label}</strong>
       <div>Forecast: {num(d.forecast)}{unit}</div>
       <div>Normal: {num(d.normal)}{unit} ({signed(d.anomaly)}{unit})</div>
-      <div>Normal range: {num(d.p10)} to {num(d.p90)}{unit}</div>
+      <div>Normal range: {num(d.p5)} to {num(d.p95)}{unit}</div>
       {d.pct != null && <div>{ordinal(d.pct)} percentile of past values for these dates</div>}
       <LevelBadge level={d.level} direction={d.direction} />
     </div>
@@ -37,8 +37,8 @@ export default function WeekChart({ data, measure }) {
     const v = d[measure]
     return {
       label: dayLabel(d.date),
-      band: v.p10 != null ? [v.p10, v.p90] : null,
-      normal: v.normal, p10: v.p10, p90: v.p90, forecast: v.forecast,
+      band: v.p5 != null ? [v.p5, v.p95] : null,
+      normal: v.normal, p5: v.p5, p95: v.p95, forecast: v.forecast,
       anomaly: v.anomaly, pct: v.pct_rank, level: v.level, direction: v.direction,
     }
   })
@@ -47,7 +47,7 @@ export default function WeekChart({ data, measure }) {
     <section className="card">
       <h3>Forecast {measure === 'high' ? 'highs' : 'lows'} vs the normal range</h3>
       <p className="legend">
-        <span className="key key-band" /> Normal range (10th to 90th percentile)
+        <span className="key key-band" /> Normal range (5th to 95th percentile)
         <span className="key key-normal" /> Average
         <span className="key key-forecast" /> Forecast
         <span className="key key-warm" /> Unusually warm

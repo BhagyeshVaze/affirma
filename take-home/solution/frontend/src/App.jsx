@@ -85,8 +85,9 @@ export default function App() {
 
       <footer className="footer">
         Data: <a href="https://open-meteo.com/">Open-Meteo</a>. Normals come from historical reanalysis
-        for the selected years, not an official 30-year climate normal. The forecast model and the
-        historical data can differ by 1 to 3° on the same day, so treat small differences with care.
+        for the selected years, not an official 30-year climate normal. The forecast and the history
+        come from different models: they agree within about 2°F on average, but can differ by several
+        degrees on a single day, so treat small differences with care.
       </footer>
     </div>
   )
