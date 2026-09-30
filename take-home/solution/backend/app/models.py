@@ -129,6 +129,7 @@ class YearRow(BaseModel):
 class ThisWeek(BaseModel):
     rank_warmest: int | None
     out_of: int
+    past_avg_high: float | None
     vs_past_mean: float | None
 
 

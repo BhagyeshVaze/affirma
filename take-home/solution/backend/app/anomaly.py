@@ -208,6 +208,7 @@ def same_week_years(forecast_days: dict, history: dict, years_back: list[int]) -
     this_week = {
         "rank_warmest": rank,
         "out_of": len(ranked),
+        "past_avg_high": past_mean,  # the chart draws this, so line and sentence agree
         "vs_past_mean": this_high - past_mean if this_high is not None and past_mean is not None else None,
     }
     return rows, this_week

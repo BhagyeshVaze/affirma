@@ -223,3 +223,15 @@ def test_verdict_says_when_the_forecast_is_what_is_missing():
     assert s["highs"]["verdict"] == s["lows"]["verdict"] == "not_enough_history"
     assert s["highs"]["days_without_forecast"] == 7
     assert s["lows"]["days_without_forecast"] == 0
+
+
+def test_same_week_past_average_is_the_one_used_for_the_comparison():
+    """Second review: the chart's "past average" line and the sentence must use the same
+    years. A year with too few days is left out of both."""
+    history = make_history(3, value_for=lambda d, y: 20.0 - y)   # past highs 19, 18, 17
+    for d in WEEK[:2]:
+        history[shift_years(d, 3)]["high"] = None               # 2023 has only 5 days
+    forecast = {d: {"high": 20.0, "low": 10.0, "rain": 0.0} for d in WEEK}
+    rows, this_week = same_week_years(forecast, history, [1, 2, 3])
+    assert this_week["past_avg_high"] == pytest.approx(18.5)    # 2024 and 2025 only
+    assert this_week["vs_past_mean"] == pytest.approx(20.0 - 18.5)

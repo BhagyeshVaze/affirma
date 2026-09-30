@@ -241,7 +241,8 @@ async def weather_same_week(om: Client, q: Annotated[WeatherQuery, Depends()]):
              "total_rain": u.rain(r["total_rain"], q.units)}
             for r in rows
         ],
-        "this_week": {**this_week, "vs_past_mean": u.temp_delta(this_week["vs_past_mean"], q.units)},
+        "this_week": {**this_week, "vs_past_mean": u.temp_delta(this_week["vs_past_mean"], q.units),
+                      "past_avg_high": u.temp(this_week["past_avg_high"], q.units)},
         "warnings": data["warnings"],
         "meta": meta(meter),
     }
