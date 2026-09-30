@@ -11,14 +11,14 @@ past years, and says which days are unusual.
 
 ## Run it (about 3 minutes)
 
-Needs Python 3.11+ and Node 20+. No API keys.
+Needs Python 3.11+ and Node 20.19+ or 22.12+ (Vite 7 needs one of these). No API keys.
 
 **1. Backend** (terminal 1)
 
 ```bash
 cd take-home/solution/backend
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --port 8000
 ```
@@ -39,14 +39,15 @@ Open <http://localhost:5173>. Pick a city, or click one of the example cities.
 python -m pytest
 ```
 
-There are 68 tests. They cover the math, dates, units, parsing, and every route, with Open-Meteo
-mocked, so they need no network.
+There are 72 tests. They cover the math, dates, units, parsing, caching, the call budget, and
+every route, with Open-Meteo mocked, so they need no network.
 
 ## What the dashboard shows
 
-- **Verdict:** how many of the next 7 days fall outside the normal range for their dates, and how
-  far highs and lows are from normal on average.
-- **Week chart:** the forecast against a shaded normal range (10th to 90th percentile of past
+- **Verdict:** two separate verdicts, for example "Days: normal. Nights: very unusual." Each
+  shows how many of the 7 days fall outside the normal range, and the average difference from
+  normal.
+- **Week chart:** the forecast against a shaded normal range (5th to 95th percentile of past
   values) and the average. Days that are unusually warm or cool are marked. Toggle highs or lows.
 - **Same week in past years:** the average high for these 7 dates in each past year, with this
   week highlighted and ranked.
@@ -66,17 +67,41 @@ mocked, so they need no network.
 For each forecast day, the baseline is every value on the same calendar date, plus or minus 3
 days, in each past year. At 10 years that is 70 values per day.
 
-- The forecast's percentile rank among those values sets its level:
-  - between the 10th and 90th percentile is **normal**
-  - outside that range is **unusual**
-  - outside the 2nd to 98th percentile is **very unusual**
-- The week is **normal** if 0 or 1 days are flagged, **somewhat unusual** for 2 to 4, and
-  **very unusual** for 5 to 7.
-- Rain is compared as weekly totals, because daily rain is mostly zeros.
+- **Day level:** the forecast's percentile rank among those values.
+  - Between the 5th and 95th percentile is **normal**.
+  - Outside that range is **unusual**.
+  - Outside the 2nd to 98th percentile is **very unusual**.
+- **Week verdict:** days (highs) and nights (lows) are judged separately and never combined.
+  For each, 0 to 2 flagged days is **normal**, 3 to 4 **somewhat unusual**, and 5 to 7
+  **very unusual**.
+- **Rain:** compared as weekly totals, because daily rain is mostly zeros.
 
-Percentiles adjust to each city's own spread. A day 11°F above normal in Denver in the fall can
-still be normal, because Denver's fall highs vary a lot. Details and reasoning are in
-[docs/PLAN.md](docs/PLAN.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
+**How the rule was picked:** we wanted "unusual" to be rare, so the rule was backtested on 357
+real past weeks in 7 cities (`scripts/backtest_verdict.py`). The first version called 75% of
+ordinary weeks unusual. The current rule calls about 83% of weeks normal and about 3% very
+unusual, for both highs and lows, in 2025 and 2024. The full table of 10 candidate rules is in
+[docs/DECISIONS.md](docs/DECISIONS.md).
+
+To rerun the backtest (from `backend/`, with the virtual env active):
+
+```bash
+python ../scripts/backtest_verdict.py
+```
+
+The first run downloads about 2,200 calls' worth of history and takes about 5 minutes. After
+that it runs from a local cache in 2 seconds.
+
+## Limitations
+
+- **The baseline doesn't account for warming.** It is the last N years as they were, so in a
+  warming climate, recent weeks are flagged warm more often than cool.
+- **Forecast uncertainty is ignored.** Day 7 is treated as if it were as reliable as day 1.
+- **The live app may flag differently than the backtest.** The forecast and the history come
+  from different models, and the backtest compares history with history. Forecasts smooth out
+  further ahead, which means fewer flags. The gap between the two sources (within about 2°F on
+  average, up to about 4°F on single days) adds noise, which means more flags. We don't know
+  which effect wins.
+- **The cache is in memory,** so it is lost on restart.
 
 ## API
 
@@ -132,6 +157,8 @@ backend/
   app/cache.py       TTL cache with in-flight dedup, call budget
   app/models.py      response models
   tests/
+scripts/
+  backtest_verdict.py  scores verdict rules on real past weeks
 frontend/src/
   App.jsx            layout, controls, state
   useApi.js, api.js  fetching, abort, error shape
