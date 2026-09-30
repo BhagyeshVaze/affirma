@@ -45,3 +45,27 @@ def test_non_list_column_is_upstream_error():
     payload = {"daily": {"time": ["2026-09-30"], "temperature_2m_max": "7"}}
     with pytest.raises(UpstreamError):
         parse_daily(payload)
+
+
+# --- every value is checked (second review, finding 1) --------------------------
+
+@pytest.mark.parametrize("time, value", [
+    (None, 20.0), ("30 Sep", 20.0), ("2026-02-30", 20.0),   # bad dates
+    ("2026-09-30", "21.7"), ("2026-09-30", True),              # text or true/false as a number
+])
+def test_bad_values_are_upstream_error(time, value):
+    payload = {"daily": {"time": [time], "temperature_2m_max": [value]}}
+    with pytest.raises(UpstreamError):
+        parse_daily(payload)
+
+
+def test_non_finite_numbers_count_as_missing():
+    payload = {"daily": {"time": ["2026-09-30", "2026-10-01"],
+                         "temperature_2m_max": [float("nan"), float("inf")]}}
+    days = parse_daily(payload)
+    assert [d["high"] for d in days.values()] == [None, None]
+
+
+def test_whole_numbers_are_accepted():
+    payload = {"daily": {"time": ["2026-09-30"], "temperature_2m_max": [21]}}
+    assert parse_daily(payload)[date(2026, 9, 30)]["high"] == 21

@@ -1,5 +1,6 @@
 """Route tests with Open-Meteo mocked by respx. No real network calls."""
 
+import json
 from datetime import date, timedelta
 
 import httpx
@@ -22,8 +23,9 @@ def daily(days, highs, lows, rain):
 
 
 def forecast_json():
+    # fresh lists every call, so a test that edits one can't leak into the next
     return {"timezone": "America/Denver",
-            **daily(WEEK, FORECAST_HIGHS, [10.0] * 7, [0.0] * 7)}
+            **daily(WEEK, list(FORECAST_HIGHS), [10.0] * 7, [0.0] * 7)}
 
 
 def archive_response(request: httpx.Request) -> httpx.Response:
@@ -284,3 +286,48 @@ def test_odd_geocoding_fields_are_cleaned_not_500(client, upstream):
     [place] = r.json()["results"]
     assert place["population"] == 729019
     assert place["id"] == 5419384
+
+
+# --- more odd upstream shapes (second review, findings 1 and 8) ---------------
+
+def test_text_temperature_in_forecast_is_502(client, upstream):
+    payload = forecast_json()
+    payload["daily"]["temperature_2m_max"][0] = "hot"
+    upstream.forecast.respond(json=payload)
+    r = client.get(ANOMALY)
+    assert r.status_code == 502
+    assert r.json()["error"]["code"] == "upstream_error"
+
+
+def test_text_temperature_in_one_archive_year_is_a_warning(client, upstream):
+    def odd(request):
+        resp = archive_response(request)
+        if request.url.params["start_date"].startswith("2019"):
+            body = resp.json()
+            body["daily"]["temperature_2m_min"][0] = "cold"
+            return httpx.Response(200, json=body)
+        return resp
+    upstream.archive.mock(side_effect=odd)
+    body = client.get(ANOMALY).json()
+    assert body["baseline"]["years_used"] == 9
+    assert body["warnings"] == ["History for 2019 could not be loaded and was left out."]
+
+
+def test_non_text_timezone_is_dropped_not_500(client, upstream):
+    upstream.forecast.respond(json={**forecast_json(), "timezone": 7})
+    r = client.get(ANOMALY)
+    assert r.status_code == 200
+    assert r.json()["location"]["timezone"] is None
+
+
+@pytest.mark.parametrize("lat, lon", [
+    (float("nan"), 0.0), (200.0, 0.0), (0.0, -181.0), (True, 0.0), ("40", "nope"),
+])
+def test_places_with_bad_coordinates_are_dropped(client, upstream, lat, lon):
+    bad = {**GEOCODE_DENVER["results"][0], "name": "Bad", "latitude": lat, "longitude": lon}
+    # sent as raw text: NaN isn't valid JSON, but Python's reader (and so ours) accepts it
+    body = json.dumps({"results": [bad, GEOCODE_DENVER["results"][0]]})
+    upstream.geocode.respond(content=body.encode(), headers={"Content-Type": "application/json"})
+    r = client.get("/api/cities?q=Denver")
+    assert r.status_code == 200
+    assert [p["name"] for p in r.json()["results"]] == ["Denver"]

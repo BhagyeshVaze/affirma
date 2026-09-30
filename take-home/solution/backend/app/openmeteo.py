@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import math
 from datetime import date
 
 import httpx
@@ -45,10 +46,23 @@ def parse_daily(payload: dict) -> Daily:
         if not isinstance(values, list) or len(values) != len(times):
             raise UpstreamError("Weather service sent data in an unexpected shape.")
         columns[our_name] = values
-    return {
-        date.fromisoformat(t): {name: values[i] for name, values in columns.items()}
-        for i, t in enumerate(times)
-    }
+    rows = {}
+    for i, t in enumerate(times):
+        try:
+            day = date.fromisoformat(t)
+        except (TypeError, ValueError):
+            raise UpstreamError("Weather service sent data in an unexpected shape.") from None
+        rows[day] = {name: _number(values[i]) for name, values in columns.items()}
+    return rows
+
+
+def _number(value) -> float | None:
+    """A reading: a real number, or None. NaN and infinity count as missing."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise UpstreamError("Weather service sent data in an unexpected shape.")
+    return value if math.isfinite(value) else None
 
 
 def _retry_after(resp: httpx.Response) -> int:
@@ -147,7 +161,8 @@ class OpenMeteo:
             days = parse_daily(payload)
             if not days:
                 raise UpstreamError("The weather service returned no forecast days.")
-            return {"timezone": payload.get("timezone"), "days": days}
+            tz = payload.get("timezone")
+            return {"timezone": tz if isinstance(tz, str) else None, "days": days}
 
         return await self.forecast_cache.get((lat, lon), fetch)
 

@@ -47,21 +47,33 @@ class WeatherQuery:
 
 def _as_int(value) -> int | None:
     """Upstream sometimes sends numbers as floats or strings; keep only whole numbers."""
+    if isinstance(value, bool):
+        return None
     try:
         f = float(value)
     except (TypeError, ValueError):
         return None
-    return int(f) if f.is_integer() else None
+    return int(f) if math.isfinite(f) and f.is_integer() else None
 
 
 def _as_text(value) -> str | None:
     return value if isinstance(value, str) and value else None
 
 
-def clean_place(raw: dict) -> dict | None:
+def _coordinate(value, limit: float) -> float | None:
+    """A real, finite number within plus or minus `limit`, or None."""
+    if isinstance(value, bool):
+        return None
     try:
-        lat, lon = float(raw["latitude"]), float(raw["longitude"])
-    except (KeyError, TypeError, ValueError):
+        f = float(value)
+    except (TypeError, ValueError):
+        return None
+    return f if math.isfinite(f) and -limit <= f <= limit else None
+
+
+def clean_place(raw: dict) -> dict | None:
+    lat, lon = _coordinate(raw.get("latitude"), 90), _coordinate(raw.get("longitude"), 180)
+    if lat is None or lon is None:
         return None
     if not _as_text(raw.get("name")):
         return None
