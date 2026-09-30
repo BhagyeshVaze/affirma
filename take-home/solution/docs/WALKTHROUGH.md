@@ -21,7 +21,7 @@ your OK.
 | Backend handles timeouts, bad input, and rate limits | Done. See questions 14, 31, and 33. |
 | Frontend calls only your backend, with at least one chart and one control | Done. 2 charts and 4 controls. The only Open-Meteo reference in the frontend is a footer link. |
 | README explains how to run it in under 5 minutes | Done. A fresh copy took 12 s with warm package caches. A cold machine will be slower; I didn't time that. |
-| README includes screenshots | Done. 3 screenshots, all in dark mode, retaken after the verdict change. |
+| README includes screenshots | Done. 3 screenshots in light mode, showing the Days/Nights verdict and the 5th to 95th percentile band. |
 | `docs/` has plan, decisions, and key AI inputs | Done. `PLAN.md`, `DECISIONS.md`, `AI_NOTES.md`, and this file. |
 | No secrets, `node_modules/`, virtualenvs, or build output | Done. See question 6. |
 
