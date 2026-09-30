@@ -122,12 +122,14 @@ def _mean(values) -> float | None:
 def verdict_for(days: list[dict], var: str) -> dict:
     """Week verdict for one variable (highs or lows), from its flagged days only.
 
-    Days with too little history are "unknown". If fewer than 5 of 7 days can be judged,
-    the verdict is "not_enough_history", never "normal".
+    Days that can't be judged (too little history, or no forecast value) are "unknown". If
+    fewer than 5 of 7 days can be judged, the verdict is "not_enough_history", never "normal".
     """
     unusual = sum(d[var]["level"] in FLAGGED for d in days)
     very = sum(d[var]["level"] == "very_unusual" for d in days)
     known = sum(d[var]["level"] != "unknown" for d in days)
+    # why a day can't be judged matters to the reader: no forecast vs thin history
+    no_forecast = sum(d[var]["level"] == "unknown" and d[var].get("forecast") is None for d in days)
     if known < MIN_DAYS_FOR_VERDICT:
         verdict = "not_enough_history"
     elif unusual >= VERY_UNUSUAL_DAYS:
@@ -136,8 +138,8 @@ def verdict_for(days: list[dict], var: str) -> dict:
         verdict = "somewhat_unusual"
     else:
         verdict = "normal"
-    return {"unusual_days": unusual, "very_unusual_days": very, "days_with_history": known,
-            "verdict": verdict}
+    return {"unusual_days": unusual, "very_unusual_days": very, "days_judged": known,
+            "days_without_forecast": no_forecast, "verdict": verdict}
 
 
 def summarize_week(days: list[dict]) -> dict:

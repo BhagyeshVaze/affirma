@@ -82,10 +82,10 @@ def test_anomaly_happy_path(client, upstream):
     assert body["days"][6]["high"]["level"] == "very_unusual"
     # 1 flagged high out of 7 is still a normal week; highs and lows are judged separately
     assert body["week"]["highs"] == {"unusual_days": 1, "very_unusual_days": 1,
-                                     "days_with_history": 7, "verdict": "normal"}
+                                     "days_judged": 7, "days_without_forecast": 0, "verdict": "normal"}
     # forecast lows of 10 °C sit mid-range in the mocked history (7 to 13 °C): 50th percentile
     assert body["week"]["lows"] == {"unusual_days": 0, "very_unusual_days": 0,
-                                    "days_with_history": 7, "verdict": "normal"}
+                                    "days_judged": 7, "days_without_forecast": 0, "verdict": "normal"}
     assert body["days"][0]["low"]["pct_rank"] == 50.0
     assert set(body["days"][0]["high"]) >= {"p5", "p95"}
     assert body["units"] == {"temperature": "°F", "precipitation": "in"}
@@ -249,7 +249,7 @@ def test_five_years_with_one_failing_is_not_enough_history(client, upstream):
     assert body["days"][0]["high"]["level"] == "unknown"
     for part in ("highs", "lows"):
         assert body["week"][part]["verdict"] == "not_enough_history"
-        assert body["week"][part]["days_with_history"] == 0
+        assert body["week"][part]["days_judged"] == 0
 
 
 # --- odd upstream shapes (review bug 3): 502, never a 500 ---------------------
@@ -268,6 +268,7 @@ def test_null_forecast_column_degrades_to_not_enough_history(client, upstream):
     r = client.get(ANOMALY)
     assert r.status_code == 200
     assert r.json()["week"]["highs"]["verdict"] == "not_enough_history"
+    assert r.json()["week"]["highs"]["days_without_forecast"] == 7
     assert r.json()["week"]["lows"]["verdict"] != "not_enough_history"
 
 
