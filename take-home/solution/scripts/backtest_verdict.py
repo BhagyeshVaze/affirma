@@ -172,13 +172,14 @@ def main() -> None:
                 n_weeks += 1
 
         print(f"\n### {year}: {n_weeks} weeks (7 cities x {n_weeks // len(CITIES)})\n")
-        print("| Rule | Normal | Somewhat | Very | Normal, by city | Worst city, very |")
-        print("|---|---:|---:|---:|---|---:|")
+        print("| Rule | Normal | Somewhat | Very | No history | Normal, by city | Worst city, very |")
+        print("|---|---:|---:|---:|---:|---|---:|")
         for rule, c in totals.items():
             n = sum(c.values())
             norm = [pc["normal"] / sum(pc.values()) for pc in per_city[rule].values()]
             very = [pc["very"] / sum(pc.values()) for pc in per_city[rule].values()]
             print(f"| {rule} | {c['normal'] / n:.0%} | {c['somewhat'] / n:.0%} | {c['very'] / n:.0%} "
+                  f"| {c['no history'] / n:.0%} "
                   f"| {min(norm):.0%} to {max(norm):.0%} | {max(very):.0%} |")
         print(f"\nWarming check: the median week sits at percentile {st.median(mid):.0f} of the "
               f"10 years before it (50 means no shift). {warm / n_weeks:.0%} of weeks are above the "
