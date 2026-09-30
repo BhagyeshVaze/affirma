@@ -74,7 +74,9 @@ doesn't show rename history, so I can't fully prove it. The fork would be `Bhagy
 | 31 | `2ba0004` | Fix: the same-week chart's average line matches its sentence (second review) |
 | 32 | `614670c` | Vitest 5 (0 npm audit warnings), Node 22.12+, logs ignored, backtest shows every category |
 | 33 | `bb4a641` | Docs: second review fixes, new backtest numbers, corrected claims |
-| 34 | (this one) | This walkthrough updated to the final code, and screenshots retaken |
+| 34 | `480eed3` | This walkthrough updated to the final code, and screenshots retaken |
+| 35 | `bcf05d5` | Comments tightened: say why, briefly, without project history |
+| 36 | (the final commit) | Last small doc and wording fixes from the final review |
 
 Before the first push, the history was rewritten once to remove a local Mac path from old versions
 of this file. The messages, dates, and final files are unchanged; commits from `4270f2a` on have
@@ -223,7 +225,9 @@ lines.
 `anomaly.pct_rank` places the forecast on the same interpolated scale the band uses: 0 at the
 smallest past value, 100 at the largest, straight lines in between. A forecast equal to several
 past values gets the middle of their positions. Because the band, the flag, and this number use
-one scale, they can't disagree (checked by a 3,000-case test). The first version used a count
+one scale, they agree (checked by a 3,000-case test). Two small exceptions: the table rounds,
+so a day just past a line can show as "95th"; and a value tied with several past values exactly
+on a line can show a percentile just outside it while counting as normal. The first version used a count
 ("share of values below, ties as half"), which disagreed with the band for about 11% of dots
 outside it.
 
@@ -434,7 +438,7 @@ Also different, and not in that list:
 - **The live app compares a forecast with history,** which the backtest doesn't test. The two
   sources differ by up to about 2°F on average and about 4°F on single days, and forecast
   uncertainty is ignored.
-- **"Very unusual" rests on very few samples,** the 1 or 2 most extreme of 70.
+- **"Very unusual" rests on very few samples,** the 2 or 3 most extreme of 70.
 - **Five small known issues** are listed in the README, such as Feb 29 double-counting.
 
 **42. What would likely break on a reviewer's machine?**
@@ -472,7 +476,7 @@ All of them are in `AI_NOTES.md`:
   build before you confirmed the decisions, the planning script crash, the build check that
   never ran, the over-flagging first rule, the weak offset check, the "you chose the defaults"
   line, the wrong two-accounts warning, the understated Node version, and the dot-shape claim.
-- **First review:** 11 findings, under "Review findings" (5 fixed, 6 listed as known issues).
+- **First review:** 11 findings, under "Review findings" (5 fixed then, 1 more fixed in the second review, 5 listed as known issues).
 - **Second review:** 11 findings, under "Second review findings". Two were mistakes in my own
   fixes: the "never 500" claim was too strong, and the fix for the wasted search made the search
   able to get stuck. My mistakes in that round were pinning Vitest 3 without checking advisories,

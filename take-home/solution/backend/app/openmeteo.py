@@ -82,8 +82,8 @@ class OpenMeteo:
         self.archive_cache = AsyncTTLCache(config.ARCHIVE_TTL_S, config.CACHE_MAX_ENTRIES)
 
     async def _get_json(self, url: str, params: dict, meter: Meter) -> dict:
-        """GET JSON. Retries once on timeouts, network errors, 5xx, and empty bodies; never on
-        400 or 429. Upstream error text is logged, not shown: some of it is wrong."""
+        """GET JSON. Retries once on timeouts, network errors, 5xx, empty bodies, and bad JSON;
+        never on 400 or 429. Upstream error text is logged, not shown: some of it is wrong."""
         for attempt in (1, 2):
             last = attempt == 2
             self.budget.take()

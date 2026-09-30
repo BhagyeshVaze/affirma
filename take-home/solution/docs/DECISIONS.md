@@ -8,7 +8,7 @@
 | Baseline | Last 10 years by default, 5 to 30 selectable | 10 years costs 11 calls per new city (1 forecast plus 10 years). 30 years is the standard climate-normal length, but costs 31. |
 | Window | Plus or minus 3 days around each date | 70 samples per day at 10 years, and a 13-day request still counts as 1 call |
 | Day level | A day is unusual when its value is outside the 5th to 95th percentile lines of its baseline, and very unusual outside the 2nd to 98th | Adjusts to each city's spread. The 5 to 95 band was picked by backtest (below). The chart's shaded band is drawn from the same lines, and the shown percentile uses the same scale, so a dot outside the band is always flagged (checked by a 3,000-case test). |
-| Week verdict | **Separate verdicts for days (highs) and nights (lows), never combined.** For each: 0 to 2 flagged days is normal, 3 to 4 somewhat unusual, 5 to 7 very unusual | Picked by backtest (below). The first rule counted a day if its high or its low was flagged, and called 75% of ordinary weeks unusual. |
+| Week verdict | **Separate verdicts for days (highs) and nights (lows), never combined.** For each: 0 to 2 flagged days is normal, 3 to 4 somewhat unusual, 5 to 7 very unusual | Picked by backtest (below). The first rule counted a day if its high or its low was flagged, and called about 3 in 4 ordinary weeks unusual. |
 | Rain | Weekly totals only | Daily rain is mostly zeros, so daily percentiles would be meaningless |
 | Units | Fetch metric, convert on the way out | Units stay out of cache keys. Deltas scale by 1.8 with no +32, which is tested. |
 | Failed past years | Drop the year and warn, unless fewer than max(3, 70%) remain | One bad upstream call shouldn't blank the page, but a thin baseline shouldn't pass silently |
@@ -113,7 +113,7 @@ the tuning is small.
 - **The baseline doesn't account for warming,** so recent warm weeks are more often flagged warm.
 - **Forecast uncertainty is ignored.** Day 7 is less certain than day 1.
 - **Very unusual rests on few samples.** At 10 years, the 2nd and 98th percentiles of 70 values
-  depend on the 1 or 2 most extreme days.
+  depend on the 2 or 3 most extreme days.
 - **The cache is lost on restart,** and is per process.
 - **Few frontend tests.** There are 6: the city search's keyboard and debounce behavior, and
   the verdict banner. The charts and the rest were checked by hand: every state, keyboard

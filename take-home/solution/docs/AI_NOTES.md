@@ -89,7 +89,7 @@ in advance.
 
 - **The week verdict rule.** The first rule counted a day as unusual if its high or its low was
   outside the 10th to 90th percentile, and called a week "somewhat unusual" at 2 such days. The
-  backtest showed it called 75% of ordinary 2025 weeks unusual. It was replaced, after testing
+  backtest showed it called about 3 in 4 ordinary 2025 weeks unusual. It was replaced, after testing
   10 rules, with separate verdicts for days and nights (highs only and lows only, 5th to 95th
   percentile, 3 or more flagged days). That rule calls 80 to 86% of weeks normal.
 - **Denver's warm nights.** The live run said Denver's nights are very unusual (forecast lows 11
@@ -124,7 +124,7 @@ From the AI's own review of the finished work (see "Key prompts", step 5).
 | 2 | Medium | In the city search, pressing Enter during the 300 ms debounce picked a stale, hidden result ("Portland, Maine" picked Portland, Oregon). | Fixed: the keyboard only acts on the visible list. Frontend test. |
 | 3 | Low | Odd upstream replies (an empty forecast, a null column, a list-shaped reply, float ids) crashed with a 500. | Fixed: 502, or treated as missing data. 6 tests. |
 | 4 | Low | A week with Feb 29 counts Feb 28 twice in past years. | Known issue, in the README |
-| 5 | Low | A dot at the very edge of the chart band can disagree with its flag. | Known issue, in the README |
+| 5 | Low | A dot at the very edge of the chart band can disagree with its flag. | Listed as a known issue at first; fixed in the second review (it turned out to be common, see below) |
 | 6 | Low | "Upstream calls" can say 0 on a first load when two requests share one fetch. | Known issue, in the README |
 | 7 | Low | Picking a city fired a wasted search for its full label. | Fixed. Frontend test. |
 | 8 | Low | The city search's highlighted option isn't announced to screen readers. | Known issue, in the README |

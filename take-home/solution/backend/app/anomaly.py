@@ -40,8 +40,8 @@ def baseline_samples(
 
 def pct_rank(value: float, samples: list[float]) -> float:
     """Position of `value` among `samples`, 0 to 100, on the same interpolated scale as
-    statistics.quantiles(method="inclusive"), so it always agrees with the band and the flag.
-    Ties get the middle of their positions.
+    statistics.quantiles(method="inclusive"), so it agrees with the band and the flag.
+    Ties get the middle of their positions (so a value tied exactly on a line can differ).
     """
     s = sorted(samples)
     n = len(s)

@@ -446,7 +446,7 @@ the build in `docs/AI_NOTES.md`.
 - Checked after build: the forecast-vs-archive offset on recent days looked like 0.5°F for Denver
   and 3°F for Chicago. That check was later found to be weak (see the correction below).
 - **Revised after the build:** decision 4 (the unusual rule) and decision 5 (the week verdict)
-  were replaced after a backtest on 357 real past weeks showed the first rule called 75% of
+  were replaced after a backtest on 357 real past weeks showed the first rule called about 3 in 4 of
   ordinary weeks unusual. Days (highs) and nights (lows) now get separate verdicts: a day is
   flagged outside the 5th to 95th percentile, and 3 or more flagged days make the week unusual.
   The chart band is now p5 to p95 to match. See DECISIONS.md, "Verdict backtest".

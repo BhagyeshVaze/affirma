@@ -77,7 +77,8 @@ days, in each past year. At 10 years that is 70 values per day.
 
 - **Day level:** where the forecast sits against percentile lines drawn from those values.
   - Between the 5th and 95th percentile lines is **normal**. These are the edges of the shaded
-    band on the chart, so a dot outside the band is always flagged.
+    band on the chart, so a dot outside the band is always flagged. (The table rounds the
+    percentile, so a day just past a line can show as "95th" and still be flagged.)
   - Outside that range is **unusual**.
   - Outside the 2nd to 98th percentile lines is **very unusual**.
 - **Week verdict:** days (highs) and nights (lows) are judged separately and never combined.
@@ -87,7 +88,7 @@ days, in each past year. At 10 years that is 70 values per day.
 - **Rain:** compared as weekly totals, because daily rain is mostly zeros.
 
 **How the rule was picked:** we wanted "unusual" to be rare, so the rule was backtested on 357
-real past weeks in 7 cities (`scripts/backtest_verdict.py`). The first version called 75% of
+real past weeks in 7 cities (`scripts/backtest_verdict.py`). The first version called about 3 in 4
 ordinary weeks unusual. The current rule calls 80 to 86% of weeks normal and 2 to 4% very
 unusual, for highs and lows, in 2025 and 2024. The full table of 10 candidate rules is in
 [docs/DECISIONS.md](docs/DECISIONS.md).
