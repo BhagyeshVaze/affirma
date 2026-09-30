@@ -56,6 +56,10 @@ data was used.
    The review findings, and what happened to each, are listed below under "Review findings".
    Each fix came with a test that failed before the fix and passes after.
 
+6. Second code review. I asked for the same review again after the fixes. It checked that each
+   fix worked, looked for anything the fixes broke, and checked every number in the docs
+   against the code. Its findings are under "Second review findings" below.
+
 ## How the AI's output was checked
 
 The docs warn that "AI invents parameters", so every upstream assumption was tested with a real
@@ -87,7 +91,7 @@ in advance.
   outside the 10th to 90th percentile, and called a week "somewhat unusual" at 2 such days. The
   backtest showed it called 75% of ordinary 2025 weeks unusual. It was replaced, after testing
   10 rules, with separate verdicts for days and nights (highs only and lows only, 5th to 95th
-  percentile, 3 or more flagged days). That rule calls 83 to 87% of weeks normal.
+  percentile, 3 or more flagged days). That rule calls 80 to 86% of weeks normal.
 - **Denver's warm nights.** The live run said Denver's nights are very unusual (forecast lows 11
   to 23°F above normal). We checked whether the gap between forecast and history caused it. It
   didn't: that gap averages under 1°F for Denver. So the warm nights are in the forecast itself.
@@ -107,7 +111,7 @@ in advance.
 | Its first forecast-vs-history check compared the last 2 weeks, where the archive may still be filled with model data, so the numbers it wrote into the docs (0.5°F Denver, 3°F Chicago) were weak | Sydney and Mumbai matched to exactly 0.0°F, which was suspicious | Yes: remeasured on older days, and the docs were corrected |
 | It wrote in AI_NOTES that I had "chosen the defaults", which I hadn't | Its own review | Yes (commit `d4bf757`) |
 | It warned me that my git email and GitHub login were two different accounts. They are one account (`BhagyeshVaze`); `gh` still shows an old username. | Checking `gh api user` | Yes |
-| The README said "Node 20+", but Vite 7 needs Node 20.19+ or 22.12+ | Checking Vite's requirements | Yes |
+| The README said "Node 20+", but Vite 7 needs Node 20.19+ or 22.12+ | Checking Vite's requirements | Yes; now Node 22.12+, see the second review |
 | PLAN.md said the chart's dots would differ in shape; they differ in fill and size only | Writing the walkthrough | Noted, not changed |
 
 ## Review findings
@@ -132,3 +136,29 @@ Also from the review:
 - The first build took 14 minutes of commit time, so I should be ready to explain every part
   of the code myself.
 - The walkthrough file showed a local path containing my username. It now uses a relative path.
+
+## Second review findings
+
+After the first round of fixes. The AI checked each fix, looked for new bugs, and compared every
+number in the docs with the code.
+
+| # | Severity | Finding | Outcome |
+|---|---|---|---|
+| 1 | Medium | The first fix's commit message claimed odd upstream replies would "never" give a 500. Other shapes still did: a bad date, text where a number belongs, a non-text timezone. | Fixed: every date and reading is now checked. 15 tests (13 failed before). The old commit message still overstates; this note corrects it. |
+| 2 | Medium | The chart band and the flags disagreed. The band used interpolated percentile lines; the flags used rank. About 11% of dots drawn outside the band (22% at 5 years) were still "normal". The README's description of this known issue was backwards. | Fixed: flags, band, and shown percentile now use the same lines. A 3,000-case test (73 mismatches before, 0 after). Backtest rerun: (a5) still meets the target. |
+| 3 | Low | If the forecast itself was missing values, the banner still said "not enough past data, try more years". | Fixed: the banner names the real cause. Backend and frontend tests. |
+| 4 | Low | At 5 years, one failed year always gives "not enough history", because 4 years is only 28 values per day. | Kept by design (it was asked for explicitly). Now documented. |
+| 5 | Low | The city search got stuck if a picked label was typed again. My fix for the wasted search caused it. | Fixed. Frontend test. |
+| 6 | Low | For one render after the query changed, old results were still in state. | Fixed defensively. No test: a single render can't be triggered reliably. |
+| 7 | Low | The same-week chart's "past average" line and its sentence could use different years. | Fixed: the backend sends the average it used. Test. |
+| 8 | Low | Upstream places with NaN, out-of-range, or true/false coordinates got through. | Fixed. Tests. |
+| 9 | Low | Small leftovers: "of 7" hard-coded, the backtest hid a category, no Node `engines` field, logs not ignored. | Fixed |
+| 10 | Low | `npm install` printed "2 moderate severity vulnerabilities" from Vitest 3, a dev-only advisory. | Fixed: Vitest 5, 0 vulnerabilities. Vitest 5 needs Node 22.12+, now declared. |
+| 11 | Low | Stale docs: "no frontend tests", "about 10 calls" (it's 11), a missing commit row, a wrong file count, and PLAN.md's change list. | Fixed |
+
+Mistakes the AI made in this round:
+- It pinned Vitest 3 without checking for advisories.
+- A test helper shared one list between tests, so one test's change leaked into later ones. It
+  showed up as two unexplained failures, and was fixed.
+- It first wrote a test for finding 5 that passed even without the fix. It was removed, because
+  it didn't test the bug.

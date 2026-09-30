@@ -11,7 +11,7 @@ past years, and says which days are unusual.
 
 ## Run it (about 3 minutes)
 
-Needs Python 3.11+ and Node 20.19+ or 22.12+ (Vite 7 needs one of these). No API keys.
+Needs Python 3.11+ and Node 22.12+ (the test tools need it; Node 20 is end of life). No API keys.
 
 **1. Backend** (terminal 1)
 
@@ -45,9 +45,10 @@ Frontend (from `frontend/`):
 npm test
 ```
 
-There are 84 backend tests. They cover the math, dates, units, parsing, odd upstream replies,
-caching, the call budget, and every route, with Open-Meteo mocked, so they need no network.
-There are 2 frontend tests, for the city search's keyboard and debounce behavior.
+There are 102 backend tests. They cover the math (including a 3,000-case check that the chart
+band and the flags always agree), dates, units, parsing, odd upstream replies, caching, the call
+budget, and every route, with Open-Meteo mocked, so they need no network. There are 6 frontend
+tests, for the city search's keyboard and debounce behavior and for the verdict banner.
 
 ## What the dashboard shows
 
@@ -74,20 +75,21 @@ There are 2 frontend tests, for the city search's keyboard and debounce behavior
 For each forecast day, the baseline is every value on the same calendar date, plus or minus 3
 days, in each past year. At 10 years that is 70 values per day.
 
-- **Day level:** the forecast's percentile rank among those values.
-  - Between the 5th and 95th percentile is **normal**.
+- **Day level:** where the forecast sits against percentile lines drawn from those values.
+  - Between the 5th and 95th percentile lines is **normal**. These are the edges of the shaded
+    band on the chart, so a dot outside the band is always flagged.
   - Outside that range is **unusual**.
-  - Outside the 2nd to 98th percentile is **very unusual**.
+  - Outside the 2nd to 98th percentile lines is **very unusual**.
 - **Week verdict:** days (highs) and nights (lows) are judged separately and never combined.
   For each, 0 to 2 flagged days is **normal**, 3 to 4 **somewhat unusual**, and 5 to 7
-  **very unusual**. If fewer than 5 days have enough past data to judge, it is
-  **not enough history**.
+  **very unusual**. If fewer than 5 days can be judged (too little past data, or missing
+  forecast values), it is **not enough history**, and the banner says which.
 - **Rain:** compared as weekly totals, because daily rain is mostly zeros.
 
 **How the rule was picked:** we wanted "unusual" to be rare, so the rule was backtested on 357
 real past weeks in 7 cities (`scripts/backtest_verdict.py`). The first version called 75% of
-ordinary weeks unusual. The current rule calls about 83% of weeks normal and about 3% very
-unusual, for both highs and lows, in 2025 and 2024. The full table of 10 candidate rules is in
+ordinary weeks unusual. The current rule calls 80 to 86% of weeks normal and 2 to 4% very
+unusual, for highs and lows, in 2025 and 2024. The full table of 10 candidate rules is in
 [docs/DECISIONS.md](docs/DECISIONS.md).
 
 To rerun the backtest (from `backend/`, with the virtual env active):
@@ -110,9 +112,9 @@ that it runs from a local cache in 2 seconds.
   average, up to about 4°F on single days) adds noise, which means more flags. We don't know
   which effect wins.
 - **The cache is in memory,** so it is lost on restart.
-- **Too little history gives no verdict.** If fewer than 5 of the 7 days have enough past data
-  (for example, 5 years with one year failing to load), the banner says "not enough history"
-  instead of guessing.
+- **Too little history gives no verdict.** If fewer than 5 of the 7 days can be judged, the
+  banner says "not enough history" instead of guessing. At the 5-year setting, one failed year
+  always leads here (4 years x 7 days = 28 values, under the 30 needed); that is by design.
 
 ## Known issues
 
@@ -120,9 +122,6 @@ Small problems found in review and left as they are. None of them change a verdi
 
 - **A week with Feb 29 counts Feb 28 twice** in past years that have no Feb 29. This affects the
   same-week averages and rain totals slightly. It next matters in 2028.
-- **A dot right at the edge of the shaded band can look wrong.** The band edges are smoothed
-  values, while a day is flagged by its rank. So a dot can sit just outside the band and still be
-  "normal", or the other way round. The table's level is the one that counts.
 - **"Upstream calls" can say 0 on a first load.** When both weather requests start together, they
   share one fetch, and only the request that started it reports the calls. The other says 0.
 - **The city search is only partly screen-reader friendly.** Arrow keys move the highlight, but

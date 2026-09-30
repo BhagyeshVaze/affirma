@@ -452,3 +452,9 @@ the build in `docs/AI_NOTES.md`.
   The chart band is now p5 to p95 to match. See DECISIONS.md, "Verdict backtest".
 - **Corrected after the build:** the forecast-vs-history gap was remeasured on older days. It
   averages within about 2°F, but can reach about 4°F on single days.
+- **Added after the first code review:** a week verdict of "not enough history" when fewer than
+  5 of 7 days can be judged (`days_judged`, `days_without_forecast` in the response).
+- **Changed after the second code review:** days are now flagged against the same p5/p95 lines
+  the chart draws (p2/p98 for very unusual), and the shown percentile uses the same scale, so
+  the band, the flag, and the percentile always agree. The same-week response gained
+  `past_avg_high`, so the chart's average line matches its sentence.
