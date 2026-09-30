@@ -17,8 +17,27 @@ const EXAMPLES = [
   { label: 'London, England, United Kingdom', latitude: 51.51, longitude: -0.13 },
 ]
 
+// A picked city is kept in the URL (?lat=..&lon=..&name=..) so a view can be shared or reloaded.
+function placeFromUrl() {
+  const q = new URLSearchParams(window.location.search)
+  if (!q.has('lat') || !q.has('lon')) return null
+  const lat = Number(q.get('lat'))
+  const lon = Number(q.get('lon'))
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null
+  return { label: q.get('name') || `${lat}, ${lon}`, latitude: lat, longitude: lon }
+}
+
+function placeToUrl(p) {
+  const q = new URLSearchParams({ lat: p.latitude, lon: p.longitude, name: p.label })
+  window.history.replaceState(null, '', `?${q}`)
+}
+
 export default function App() {
-  const [place, setPlace] = useState(null)
+  const [place, setPlaceState] = useState(placeFromUrl)
+  const setPlace = (p) => {
+    setPlaceState(p)
+    placeToUrl(p)
+  }
   const [years, setYears] = useState(10)
   const [units, setUnits] = useState('imperial')
   const [measure, setMeasure] = useState('high')
