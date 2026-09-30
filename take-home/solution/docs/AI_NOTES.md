@@ -131,4 +131,4 @@ From the AI's own review of the finished work (see "Key prompts", step 5).
 Also from the review:
 - The first build took 14 minutes of commit time, so I should be ready to explain every part
   of the code myself.
-- The walkthrough file shows a local path containing my username (left as is for now).
+- The walkthrough file showed a local path containing my username. It now uses a relative path.
