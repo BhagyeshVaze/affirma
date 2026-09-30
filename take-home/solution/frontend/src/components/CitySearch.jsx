@@ -17,7 +17,9 @@ export default function CitySearch({ onPick }) {
   }, [text])
 
   const search = useApi('/api/cities', query.length >= 2 ? { q: query, count: 6 } : null)
-  const results = search.data?.results ?? []
+  // only results for the current query; on the first render after the query changes,
+  // search.data still holds the previous query's results
+  const results = search.data?.query === query ? search.data.results : []
 
   useEffect(() => setActive(0), [search.data])
 
@@ -61,6 +63,7 @@ export default function CitySearch({ onPick }) {
         autoComplete="off"
         value={text}
         onChange={(e) => {
+          pickedLabel.current = null // the user is typing now; search whatever they type
           setText(e.target.value)
           setOpen(true)
         }}

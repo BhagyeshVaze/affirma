@@ -65,3 +65,15 @@ it('picking a city does not fire another search for its label (review bug 7)', a
   await wait(450) // longer than the debounce
   expect(queries()).toEqual(['Portland'])
 })
+
+it('after a pick, typing the exact label again still searches (finding 5)', async () => {
+  const { input } = setup()
+  fireEvent.change(input, { target: { value: 'Portland' } })
+  await screen.findByText(OREGON.label)
+  fireEvent.keyDown(input, { key: 'Enter' })
+
+  fireEvent.change(input, { target: { value: 'x' } })
+  fireEvent.change(input, { target: { value: OREGON.label } }) // pasted back by the user
+  await wait(450)
+  expect(queries()).toEqual(['Portland', OREGON.label])
+})
