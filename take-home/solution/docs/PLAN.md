@@ -433,3 +433,15 @@ evidence behind decision 4.
 
 **What to review in this plan:** the decisions in section 2. Record any AI mistakes found during
 the build in `docs/AI_NOTES.md`.
+
+## 12. Changes during the build
+
+- `z` was dropped from the response. Percentile rank carries the same idea without assuming a
+  normal distribution.
+- `samples_per_day` was dropped from `baseline`, because the real count is per day (`n` on each
+  comparison). `baseline` was added to the same-week response.
+- The trend line was cut for time. See DECISIONS.md.
+- Added: the picked city is kept in the URL (`?lat=&lon=&name=`), so views can be shared.
+- Added: `meta.upstream_calls` is shown under the table, so the cache is visible.
+- Checked after build: the forecast-vs-archive offset is about 0.5°F for Denver and about 3°F for
+  Chicago, on the same recent days. That confirms gotcha 2 is real but small.
