@@ -443,5 +443,12 @@ the build in `docs/AI_NOTES.md`.
 - The trend line was cut for time. See DECISIONS.md.
 - Added: the picked city is kept in the URL (`?lat=&lon=&name=`), so views can be shared.
 - Added: `meta.upstream_calls` is shown under the table, so the cache is visible.
-- Checked after build: the forecast-vs-archive offset is about 0.5°F for Denver and about 3°F for
-  Chicago, on the same recent days. That confirms gotcha 2 is real but small.
+- Checked after build: the forecast-vs-archive offset on recent days looked like 0.5°F for Denver
+  and 3°F for Chicago. That check was later found to be weak (see the correction below).
+- **Revised after the build:** decision 4 (the unusual rule) and decision 5 (the week verdict)
+  were replaced after a backtest on 357 real past weeks showed the first rule called 75% of
+  ordinary weeks unusual. Days (highs) and nights (lows) now get separate verdicts: a day is
+  flagged outside the 5th to 95th percentile, and 3 or more flagged days make the week unusual.
+  The chart band is now p5 to p95 to match. See DECISIONS.md, "Verdict backtest".
+- **Corrected after the build:** the forecast-vs-history gap was remeasured on older days. It
+  averages within about 2°F, but can reach about 4°F on single days.

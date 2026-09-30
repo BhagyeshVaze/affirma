@@ -30,7 +30,20 @@ data was used.
    > only have the next 6 hours to build and submit this
 
    The AI kept the plan's defaults (listed in PLAN.md section 2) and built in the commit order
-   from PLAN.md section 10.
+   from PLAN.md section 10. It started building without waiting for the 4 decisions it had asked
+   to have confirmed (see the mistakes table below).
+
+4. Review. I asked the AI to answer 45 questions about its own work, in plain language
+   ([WALKTHROUGH.md](WALKTHROUGH.md)). I then had a second Claude session review those answers
+   and give fix instructions. The key one:
+
+   > Verdict rule. Using your backtest script, test at least 3 candidate rules [...] Pick the rule
+   > using 2025, then report how it does on 2024 as a check. Target: roughly 75 to 85% of weeks
+   > "normal" and under 5% "very unusual", across all 7 cities. [...] wait for my OK before
+   > changing code.
+
+   The AI tested 10 rules, recommended one, and waited for approval before changing code. The
+   results are in [DECISIONS.md](DECISIONS.md), under "Verdict backtest".
 
 ## How the AI's output was checked
 
@@ -41,6 +54,8 @@ request before it went into the plan or the code:
 - A throwaway script ran the anomaly math on real Denver data before any code was written. Its
   numbers matched the finished endpoint exactly.
 - Every route was tested live (curl and the browser) and with mocked upstream failures in pytest.
+- After the build, a backtest (`scripts/backtest_verdict.py`) ran the verdict rule on 357 real
+  past weeks. That is what showed the first rule flagged far too many ordinary weeks.
 
 ## What the checks caught
 
@@ -50,18 +65,36 @@ in advance.
 | Finding | What changed |
 |---|---|
 | The archive silently turns `2025-02-29` into `2025-03-01` rather than failing | Feb 29 is handled in code (`dates.shift_years`), with tests |
-| Forecast and archive snap to different grid points | Measured the offset between them (0.5 to 3°F on the same days) and added it as a known limit and a page footnote |
+| Forecast and archive come from different models and snap to different grid points | Measured on the same past days, 30 to 90 days back: they agree within about 2°F on average (-2.2 to +0.9°F across 7 cities), but can differ by up to about 4°F on single days. Added as a known limit and a page footnote. |
 | An archive call once returned HTTP 200 with an empty body | Empty bodies are retried once, with a test |
 | Upstream error text can be wrong (`forecast_days=17` says "Given 16") | Upstream text is logged, never shown to users |
 | Geocoding returns no `results` key both for no match and for 1-character queries | Treated as an empty list; the API needs 2+ characters |
 
 ## Where the AI's first version was wrong or changed
 
-- **The week verdict.** The plan's example response showed "normal" for Denver. The live run said
-  "very unusual" because of the lows: forecast lows ran 11 to 23°F above normal. Before trusting
-  it, we checked whether the forecast-vs-history offset caused it. It didn't: that offset is
-  only about 0.5°F for Denver. So the warm nights are in the forecast itself.
+- **The week verdict rule.** The first rule counted a day as unusual if its high or its low was
+  outside the 10th to 90th percentile, and called a week "somewhat unusual" at 2 such days. The
+  backtest showed it called 75% of ordinary 2025 weeks unusual. It was replaced, after testing
+  10 rules, with separate verdicts for days and nights (highs only and lows only, 5th to 95th
+  percentile, 3 or more flagged days). That rule calls 83 to 87% of weeks normal.
+- **Denver's warm nights.** The live run said Denver's nights are very unusual (forecast lows 11
+  to 23°F above normal). We checked whether the gap between forecast and history caused it. It
+  didn't: that gap averages under 1°F for Denver. So the warm nights are in the forecast itself.
 - **Chart tooltip.** The first tooltip said the same thing twice ("100% ... 100th pct."), so it
   was simplified.
 - **Retry.** The first error state retried only one of the two requests; it now retries both.
 - **Trend line.** Planned as a stretch goal, then cut. With 10 years it would mostly be noise.
+
+## Mistakes the AI made, and how they were caught
+
+| Mistake | How it was caught | Fixed? |
+|---|---|---|
+| **It started building before I confirmed the 4 decisions it had asked about.** I had written "only have the next 6 hours to build and submit this"; it read that as permission to build with its own defaults. | My review afterward | The defaults are documented as the AI's choice. The main one (the verdict rule) was later replaced after a backtest and my approval. |
+| Its planning script crashed on an empty upstream reply | The crash | Yes: the client retries empty bodies |
+| The first frontend build check never ran (`timeout` doesn't exist on macOS), and the scaffold was committed without it | The error output. Every later build passed. | Yes |
+| The first verdict rule over-flagged ordinary weeks | A backtest on 357 past weeks | Yes, replaced (see above) |
+| Its first forecast-vs-history check compared the last 2 weeks, where the archive may still be filled with model data, so the numbers it wrote into the docs (0.5°F Denver, 3°F Chicago) were weak | Sydney and Mumbai matched to exactly 0.0°F, which was suspicious | Yes: remeasured on older days, and the docs were corrected |
+| It wrote in AI_NOTES that I had "chosen the defaults", which I hadn't | Its own review | Yes (commit `d4bf757`) |
+| It warned me that my git email and GitHub login were two different accounts. They are one account (`BhagyeshVaze`); `gh` still shows an old username. | Checking `gh api user` | Yes |
+| The README said "Node 20+", but Vite 7 needs Node 20.19+ or 22.12+ | Checking Vite's requirements | Yes |
+| PLAN.md said the chart's dots would differ in shape; they differ in fill and size only | Writing the walkthrough | Noted, not changed |
